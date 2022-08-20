@@ -5784,10 +5784,11 @@ public:
             if (spellId == 209190 && !apply)
             {
                 Talk(5);
-                if (Unit* Owner = me->ToTempSummon()->GetSummoner())
-                    if (Player* player = Owner->ToPlayer())
-                        if (Creature* cre = me->SummonCreature(105733, me->GetPosition(), TEMPSUMMON_TIMED_DESPAWN, 60000))
-                            cre->AddPlayerInPersonnalVisibilityList(player->GetGUID());
+                if (TempSummon* tempSummon = me->ToTempSummon())
+                    if (Unit* owner = tempSummon->GetSummoner())
+                        if (Player* player = owner->ToPlayer())
+                            if (Creature* cre = me->SummonCreature(105733, me->GetPosition(), TEMPSUMMON_TIMED_DESPAWN, 60000))
+                                cre->AddPlayerInPersonnalVisibilityList(player->GetGUID());
 
                 me->DespawnOrUnsummon(60000); //if player do nothing
             }
@@ -5815,13 +5816,17 @@ public:
 
         void Complete()
         {
-            if (Unit* Owner = me->ToTempSummon()->GetSummoner())
-                if (Player* player = Owner->ToPlayer())
+            if (TempSummon* tempSummon = me->ToTempSummon())
+            {
+                if (Unit* owner = tempSummon->GetSummoner())
                 {
-                    player->RewardPlayerAndGroupAtEvent(105586, player);
-                    me->SetVisible(false);
+                    if (Player* player = owner->ToPlayer())
+                    {
+                        player->RewardPlayerAndGroupAtEvent(105586, player);
+                        me->SetVisible(false);
+                    }
                 }
-
+            }
         }
 
         void MovementInform(uint32 type, uint32 id) override
@@ -5841,15 +5846,22 @@ public:
                     });
                     break;
                 case 3:
-                    if (Unit* Owner = me->ToTempSummon()->GetSummoner())
-                        if (Player* player = Owner->ToPlayer())
-                            if (Creature* boros = me->FindNearestCreature(105602, 8.0f, true))
+                    if (TempSummon* tempSummon = me->ToTempSummon())
+                    {
+                        if (Unit* owner = tempSummon->GetSummoner())
+                        {
+                            if (Player* player = owner->ToPlayer())
                             {
-                                boros->AI()->Talk(2);
-                                me->AddDelayedEvent(5500, [this, player] {
-                                    Complete();
-                                });
+                                if (Creature* boros = me->FindNearestCreature(105602, 8.0f, true))
+                                {
+                                    boros->AI()->Talk(2);
+                                    me->AddDelayedEvent(5500, [this, player] {
+                                        Complete();
+                                    });
+                                }
                             }
+                        }
+                    }
                     DoCast(41995);
                     break;
                 default:
