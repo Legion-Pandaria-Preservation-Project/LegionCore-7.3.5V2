@@ -21,28 +21,29 @@ if(WIN32)
   set(Boost_USE_STATIC_RUNTIME     OFF)
 endif()
 
-find_package(Boost 1.51 REQUIRED system filesystem thread program_options iostreams regex)
-
-# Find if Boost was compiled in C++03 mode because it requires -DBOOST_NO_CXX11_SCOPED_ENUMS
-
 include (CheckCXXSourceCompiles)
+check_cxx_source_compiles("
+  #include <regex>
+  int main() { std::wregex r(L\".*\"); }"
+  STD_HAS_WORKING_WREGEX)
+
+if (STD_HAS_WORKING_WREGEX)
+  find_package(Boost 1.66 REQUIRED system filesystem thread program_options iostreams)
+else()
+  find_package(Boost 1.58 REQUIRED system filesystem thread program_options iostreams regex)
+endif()
 
 set(CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIR})
 set(CMAKE_REQUIRED_LIBRARIES ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_IOSTREAMS_LIBRARY})
 set(CMAKE_REQUIRED_FLAGS "-std=c++11")
-unset(boost_filesystem_copy_links_without_NO_SCOPED_ENUM CACHE)
 check_cxx_source_compiles("
   #include <boost/filesystem/path.hpp>
   #include <boost/filesystem/operations.hpp>
   int main() { boost::filesystem::copy_file(boost::filesystem::path(), boost::filesystem::path()); }"
 boost_filesystem_copy_links_without_NO_SCOPED_ENUM)
-unset(CMAKE_REQUIRED_INCLUDES CACHE)
-unset(CMAKE_REQUIRED_LIBRARIES CACHE)
-unset(CMAKE_REQUIRED_FLAGS CACHE)
-
-if (NOT boost_filesystem_copy_links_without_NO_SCOPED_ENUM)
-  set(OPTIONAL_BOOST_NO_SCOPED_ENUMS -DBOOST_NO_CXX11_SCOPED_ENUMS)
-endif()
+unset(CMAKE_REQUIRED_INCLUDES)
+unset(CMAKE_REQUIRED_LIBRARIES)
+unset(CMAKE_REQUIRED_FLAGS)
 
 add_library(boost INTERFACE)
 
@@ -59,4 +60,15 @@ target_compile_definitions(boost
     -DBOOST_DATE_TIME_NO_LIB
     -DBOOST_REGEX_NO_LIB
     -DBOOST_CHRONO_NO_LIB
-    ${OPTIONAL_BOOST_NO_SCOPED_ENUMS})
+    -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
+    -DBOOST_ASIO_NO_DEPRECATED)
+if (NOT boost_filesystem_copy_links_without_NO_SCOPED_ENUM)
+  target_compile_definitions(boost
+    INTERFACE
+      -DBOOST_NO_CXX11_SCOPED_ENUMS)
+endif()
+if (NOT STD_HAS_WORKING_WREGEX)
+  target_compile_definitions(boost
+    INTERFACE
+      -DTC_HAS_BROKEN_WSTRING_REGEX)
+endif()
