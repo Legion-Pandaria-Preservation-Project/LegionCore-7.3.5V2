@@ -13,6 +13,9 @@ public:
             return;
 
         player->GiveLevel(t_Level);
+        player->CastSpell(player, 34092, true);
+        player->CastSpell(player, 54198, true);
+        player->ModifyMoney(5000000);
         player->SaveToDB();
     }
 
