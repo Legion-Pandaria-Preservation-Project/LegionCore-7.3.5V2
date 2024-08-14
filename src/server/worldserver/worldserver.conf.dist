@@ -2914,7 +2914,7 @@ CharDelete.KeepDays = 0
 #                     1  - (Faster)
 #                     2  - (Instant)
 
-FastFishing = 0
+FastFishing = 1
 ###################################################################################################
 # CUSTOM SERVER OPTIONS
 #
