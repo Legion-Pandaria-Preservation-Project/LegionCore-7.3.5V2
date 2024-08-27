@@ -4301,3 +4301,26 @@ PvP.TemplateSecondaryStad = 6600
 Pvp.EnableCustomStad = 0
 
 ###################################################################################################
+
+####################################################################################################
+###PLAYTIMEREWARD###
+####################
+#
+# PlayedTimeReward.Money is copper so 10000 copper is 1 gold. Interval 3600000 = 1hour
+ PlayedTimeReward.Money
+# PlayedTimeReward.Item  Nordrassil Coin
+#
+# 505051 = Nordrassil Coin(1 monedas) 
+# 505052 = Nordrassil Coin(2 monedas) 
+# 505053 = Nordrassil Coin(3 monedas) 
+# 505054 = Nordrassil Coin(4 monedas) 
+# 505055 = Nordrassil Coin(5 monedas) 
+# 505056 = Nordrassil Coin(10 monedas)
+# 
+PlayedTimeReward.Interval = 300000
+PlayedTimeReward.Money    = 1
+PlayedTimeReward.Item     = 505056
+#
+####################################################################################################
+
+###################################################################################################
