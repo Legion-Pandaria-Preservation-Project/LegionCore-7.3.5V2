@@ -20,11 +20,11 @@ env:
   REPO_DIR : ${{github.workspace}}
   BUILD_DIR: ${{github.workspace}}/bin/builddir
   BOOST_TOOLSET: "msvc"
-  BOOST_VERSION: "1.78.0"
+  BOOST_VERSION: "1.64.0"
   
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-2022
     if: ${{ !github.event.pull_request.draft }}
 
     steps:
