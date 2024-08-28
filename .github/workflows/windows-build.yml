@@ -20,7 +20,7 @@ env:
   REPO_DIR : ${{github.workspace}}
   BUILD_DIR: ${{github.workspace}}/bin/builddir
   BOOST_TOOLSET: "msvc"
-  BOOST_VERSION: "1.78.0"
+  BOOST_VERSION: "1.64.0"
   
 jobs:
   build:
@@ -72,7 +72,6 @@ jobs:
         cd $GITHUB_WORKSPACE
         
         mkdir -p build && cd build
-        cmake .. -DTOOLS=ON -DELUNA=1 -A x64
         cmake --build . --config RelWithDebInfo --parallel 4
       #git bash shell
       shell: bash
