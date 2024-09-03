@@ -1978,8 +1978,7 @@ struct scenario_bi_gualdan : public Scripted_NoMovementAI
 
             }
 
-            if (me->IsWithinDist(who, 160.0f))
-                p->UpdateAchievementCriteria(CRITERIA_TYPE_SCRIPT_EVENT_2, 50027);
+            script->DoUpdateAchievementCriteria(CRITERIA_TYPE_SCRIPT_EVENT_2, 50027);
 
             step7_intro = true;
 
