@@ -1572,7 +1572,7 @@ void Player::Update(uint32 p_time)
 
     m_achievementMgr->UpdateTimedAchievements(p_time);
 
-    if (HasUnitState(UNIT_STATE_MELEE_ATTACKING) && !HasUnitState(UNIT_STATE_CASTING))
+    if (HasUnitState(UNIT_STATE_MELEE_ATTACKING) && !HasUnitState(UNIT_STATE_CASTING) && !HasUnitState(UNIT_STATE_CHARGING))
     {
         if (Unit* victim = getVictim())
         {
@@ -23204,7 +23204,7 @@ void Player::_LoadInventory(PreparedQueryResult result, PreparedQueryResult arti
         {
             if (Item* parent = GetItemByGuid(childItem->GetGuidValue(ITEM_FIELD_CREATOR)))
             {
-                InventoryResult res = CanUseItem(parent , false );
+                InventoryResult res = CanUseItem(parent, false);
                 if (res == EQUIP_ERR_OK)
                 {
                     parent->SetChildItem(childItem->GetGUID());
@@ -36267,7 +36267,7 @@ bool Player::IsForbiddenMapForLevel(uint32 mapid, uint32 zone)
             break;
         case 870:
             if (getClass() != CLASS_MONK)
-                minLevel = 85;
+                minLevel = 80;
             break;
         case 1116: //Draenor
         case 1265: //Dark Portal
