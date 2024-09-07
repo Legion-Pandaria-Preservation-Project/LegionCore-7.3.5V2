@@ -20,7 +20,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Dependencies
       run: |
-        sudo apt update && sudo apt install mysql-server
+        sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu trusty universe'
+        sudo apt-get update
+        sudo apt install mysql-server-5.6 mysql-client-5.6
         sudo apt-get update && sudo apt-get install -yq libboost-all-dev g++-13 libreadline-dev libbz2-dev
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 --slave /usr/bin/g++ g++ /usr/bin/g++-13
     - name: Setup
