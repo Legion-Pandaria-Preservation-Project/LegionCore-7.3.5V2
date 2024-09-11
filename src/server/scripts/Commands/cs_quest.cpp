@@ -48,6 +48,11 @@ public:
         Player* player = handler->getSelectedPlayerOrSelf();
         if (!player)
         {
+            player = handler->getPlayer();
+        }
+        
+        if (!player)
+        {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
             handler->SetSentErrorMessage(true);
             return false;
@@ -134,6 +139,11 @@ public:
     static bool HandleQuestRemove(ChatHandler* handler, const char* args)
     {
         Player* player = handler->getSelectedPlayerOrSelf();
+        if (!player)
+        {
+            player = handler->getPlayer();
+        }
+        
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -232,6 +242,11 @@ public:
         Player* player = handler->getSelectedPlayerOrSelf();
         if (!player)
         {
+            player = handler->getPlayer();
+        }
+        
+        if (!player)
+        {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
             handler->SetSentErrorMessage(true);
             return false;
@@ -262,6 +277,11 @@ public:
     static bool HandleQuestStatus(ChatHandler* handler, char const* args)
     {
         Player* player = handler->getSelectedPlayerOrSelf();
+        if (!player)
+        {
+            player = handler->getPlayer();
+        }
+        
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
