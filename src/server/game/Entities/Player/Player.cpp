@@ -47,6 +47,7 @@
 #include "CombatPackets.h"
 #include "Common.h"
 #include "ConditionMgr.h"
+#include "Config.h"
 #include "CreatureAI.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
@@ -278,7 +279,11 @@ m_achievementMgr(sf::safe_ptr<AchievementMgr<Player>>(this))
         m_bgBattlegroundQueueID[j].invitedToInstance = 0;
         m_bgBattlegroundQueueID[j].joinTime = 0;
     }
-
+        // PlayedTimeReward
+    ptr_Interval = sConfigMgr->GetIntDefault("PlayedTimeReward.Interval", 0);
+    ptr_Money = sConfigMgr->GetIntDefault("PlayedTimeReward.Money", 0);
+    ptr_Item = sConfigMgr->GetIntDefault("PlayedTimeReward.Item", 0);
+    
     m_createdtime = time(NULL);
     m_logintime = time(NULL);
     m_Last_tick = 0;
@@ -1524,6 +1529,20 @@ void Player::Update(uint32 p_time)
         if (Unit* charmer = GetCharmer())
             if (charmer->IsCreature() && charmer->isAlive())
                 UpdateCharmedAI();
+                
+       // PlayedTimeReward
+    if (ptr_Interval > 0)
+    {
+        if (ptr_Interval <= p_time)
+        {
+            ChatHandler(GetSession()).PSendSysMessage("[PlayedTimeReward] :: Вы получили вознаграждение за пребывание в сети.");
+            ModifyMoney(ptr_Money);
+            AddItem(ptr_Item, 1, 0);
+            ptr_Interval = sConfigMgr->GetIntDefault("PlayedTimeReward.Interval", 0);
+        }
+        else
+            ptr_Interval -= p_time;
+    }         
 
     if (!m_timedquests.empty())
     {
@@ -1553,7 +1572,7 @@ void Player::Update(uint32 p_time)
 
     m_achievementMgr->UpdateTimedAchievements(p_time);
 
-    if (HasUnitState(UNIT_STATE_MELEE_ATTACKING) && !HasUnitState(UNIT_STATE_CASTING))
+    if (HasUnitState(UNIT_STATE_MELEE_ATTACKING) && !HasUnitState(UNIT_STATE_CASTING) && !HasUnitState(UNIT_STATE_CHARGING))
     {
         if (Unit* victim = getVictim())
         {
@@ -23185,7 +23204,7 @@ void Player::_LoadInventory(PreparedQueryResult result, PreparedQueryResult arti
         {
             if (Item* parent = GetItemByGuid(childItem->GetGuidValue(ITEM_FIELD_CREATOR)))
             {
-                InventoryResult res = CanUseItem(parent , false );
+                InventoryResult res = CanUseItem(parent, false);
                 if (res == EQUIP_ERR_OK)
                 {
                     parent->SetChildItem(childItem->GetGUID());
@@ -36248,7 +36267,7 @@ bool Player::IsForbiddenMapForLevel(uint32 mapid, uint32 zone)
             break;
         case 870:
             if (getClass() != CLASS_MONK)
-                minLevel = 85;
+                minLevel = 80;
             break;
         case 1116: //Draenor
         case 1265: //Dark Portal
@@ -37165,6 +37184,15 @@ bool Player::InFFAPvPArea()
 void Player::UpdatePlayerNameData()
 {
     sWorld->UpdateCharacterNameDataZoneGuild(GetGUID().GetCounter(), m_zoneId, GetGuildId(), GetRank());
+}
+
+uint16 Player::getAdventureQuestID()
+{
+    // if not 0 check if the adventure quest is still in the quest journal, otherwise return 0
+    if (m_adventure_questID && GetQuestStatus(m_adventure_questID) != QUEST_STATUS_REWARDED && GetQuestStatus(m_adventure_questID) != QUEST_STATUS_NONE)
+        return m_adventure_questID;
+
+    return 0;
 }
 
 void Player::setAdventureQuestID(uint16 questID)
