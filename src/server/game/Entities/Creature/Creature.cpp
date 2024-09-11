@@ -2789,7 +2789,7 @@ bool Creature::isElite() const
         return false;
 
     uint32 rank = GetCreatureTemplate()->Classification;
-    return rank == CREATURE_CLASSIFICATION_ELITE || rank == CREATURE_CLASSIFICATION_RARE_ELITE || rank == CREATURE_CLASSIFICATION_WORLDBOSS;
+    return rank != CREATURE_CLASSIFICATION_NORMAL && rank != CREATURE_CLASSIFICATION_RARE;
 }
 
 bool Creature::isWorldBoss() const

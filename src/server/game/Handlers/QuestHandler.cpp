@@ -32,7 +32,6 @@
 #include "ScriptMgr.h"
 #include "GameObjectAI.h"
 #include "QuestPackets.h"
-#include "GarrisonPackets.h"
 #include "QuestData.h"
 #include "GameEventMgr.h"
 
@@ -888,41 +887,31 @@ void WorldSession::HandleAdventureJournalStartQuest(WorldPackets::Quest::Adventu
     }
 }
 
-bool WorldSession::AdventureMapPOIAvailable(uint32 adventureMapPOIID)
+void WorldSession::HandleQueryAdventureMapPOI(WorldPackets::Quest::QueryAdventureMapPOI& packet)
 {
-    auto adventureMapPOIEntry = sAdventureMapPOIStore[adventureMapPOIID];
+    auto adventureMapPOIEntry = sAdventureMapPOIStore[packet.AdventureMapPOIID];
     if (!adventureMapPOIEntry)
-        return false;
+        return;
 
     auto available = false;
+    auto questID = 0u;
 
     if (sConditionMgr->IsPlayerMeetingCondition(GetPlayer(), adventureMapPOIEntry->PlayerConditionID))
     {
         switch (adventureMapPOIEntry->Type)
         {
         case 1:
-            if (auto quest = sQuestDataStore->GetQuestTemplate(adventureMapPOIEntry->QuestID))
-                available = !_player->getAdventureQuestID() && _player->CanTakeQuest(quest, false);
+            questID = adventureMapPOIEntry->QuestID;
             break;
         default:
             break;
         }
     }
 
-    return available;
-}
+    if (auto quest = sQuestDataStore->GetQuestTemplate(questID))
+        available = !_player->getAdventureQuestID() && _player->CanTakeQuest(quest, false);
 
-void WorldSession::HandleQueryAdventureMapPOI(WorldPackets::Quest::QueryAdventureMapPOI& packet)
-{
-    SendPacket(WorldPackets::Quest::QueryAdventureMapPOIResponse(packet.AdventureMapPOIID, AdventureMapPOIAvailable(packet.AdventureMapPOIID)).Write());
-}
-
-void WorldSession::HandleGarrisonRequestScoutingMap(WorldPackets::Garrison::GarrisonRequestScoutingMap& scoutingMap)
-{
-    WorldPackets::Garrison::GarrisonScoutingMapResult result;
-    result.ID = scoutingMap.ID;
-    result.Active = AdventureMapPOIAvailable(scoutingMap.ID);
-    SendPacket(result.Write());
+    SendPacket(WorldPackets::Quest::QueryAdventureMapPOIResponse(packet.AdventureMapPOIID, available).Write());
 }
 
 void WorldSession::HandleRequestWorldQuestUpdate(WorldPackets::Quest::RequestWorldQuestUpdate& /*packet*/)

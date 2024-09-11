@@ -468,7 +468,7 @@ uint32 Battlenet::Session::GetRealmListTicket(std::unordered_map<std::string, Va
     {
         ::JSON::RealmList::RealmListTicketIdentity data;
         std::size_t jsonStart = identity->blob_value().find(':');
-        if (_accountInfo->Id == data.gameaccountid())
+        if (jsonStart != std::string::npos && ::JSON::Deserialize(identity->blob_value().substr(jsonStart + 1), &data))
         {
             auto itr = _accountInfo->GameAccounts.find(data.gameaccountid());
             if (itr != _accountInfo->GameAccounts.end())

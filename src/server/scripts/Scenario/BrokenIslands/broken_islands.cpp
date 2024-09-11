@@ -1239,26 +1239,21 @@ struct scenarion_bi_heroes : scenarion_bi_heroesl_baseAI
             switch (action)
             {
             case 5:
+                GetNPCAroundAndDoAction([](Creature* creature)
                 {
-                    bool alliance = true;
-                    if (auto script = me->GetInstanceScript())
-                        if (script->GetData(DATA_SCENARIO_TEAM) != ALLIANCE)
-                            alliance = false;
-
-                    GetNPCAroundAndDoAction([alliance](Creature* creature)
-                    {
-                        creature->SetReactState(alliance ? REACT_AGGRESSIVE : REACT_PASSIVE);
-                    }, 5);
-                    me->GetMotionMaster()->Clear();
-                    me->GetMotionMaster()->MovePath(439144, false); //4 9 14 21
-                    me->SetHomePosition(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation());
-                    me->ClearUnitState(UNIT_STATE_EVADE);
-                    if (alliance)
-                    {
-                        me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
-                        me->SetReactState(REACT_AGGRESSIVE);
-                    }
-                }
+                    creature->AI()->EnterEvadeMode();
+                    creature->GetMotionMaster()->Clear();
+                    creature->SetReactState(REACT_AGGRESSIVE);
+                }, 5);
+                me->GetMotionMaster()->Clear();
+                me->GetMotionMaster()->MovePath(439144, false); //4 9 14 21
+                me->SetHomePosition(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation());
+                if (auto script = me->GetInstanceScript())
+                    if (script->GetData(DATA_SCENARIO_TEAM) != ALLIANCE)
+                        GetNPCAroundAndDoAction([](Creature* creature)
+                        {
+                            creature->SetReactState(REACT_PASSIVE);
+                        }, 5);
                 break;
             case 6:
                 GetNPCAroundAndDoAction([](Creature* creature)
@@ -1978,7 +1973,8 @@ struct scenario_bi_gualdan : public Scripted_NoMovementAI
 
             }
 
-            script->DoUpdateAchievementCriteria(CRITERIA_TYPE_SCRIPT_EVENT_2, 50027);
+            if (me->IsWithinDist(who, 160.0f))
+                p->UpdateAchievementCriteria(CRITERIA_TYPE_SCRIPT_EVENT_2, 50027);
 
             step7_intro = true;
 

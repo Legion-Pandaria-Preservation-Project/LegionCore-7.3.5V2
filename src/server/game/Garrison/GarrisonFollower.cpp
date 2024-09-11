@@ -55,11 +55,9 @@ void Follower::ModAssistant(SpellInfo const* spellInfo, Player* caster)
         IncreaseWeaponLevel = 2,
         IncreaseArmorLevel = 3
     };
+
     auto itemLevelUpgradeDataEntry = sGarrItemLevelUpgradeDataStore[spellInfo->Effects[0]->MiscValue];
     if (!itemLevelUpgradeDataEntry)
-        return;
-
-    if (itemLevelUpgradeDataEntry->FollowerTypeID != TypeID)
         return;
 
     auto followerTypeData = sGarrFollowerTypeStore[TypeID];
@@ -70,7 +68,7 @@ void Follower::ModAssistant(SpellInfo const* spellInfo, Player* caster)
     if (maxAllowedItemLevel > followerTypeData->MaxItemLevel)
         return;
 
-    if (!maxAllowedItemLevel)
+    if (!maxAllowedItemLevel && TypeID == FollowerType::Garrison)
         maxAllowedItemLevel = followerTypeData->MaxItemLevel;
 
     auto updateInfo = false;
