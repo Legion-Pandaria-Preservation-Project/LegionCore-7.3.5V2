@@ -45,7 +45,7 @@ public:
 
     static bool HandleQuestAutocomplete(ChatHandler* handler, const char* args)
     {
-        Player* player = handler->getSelectedPlayer();
+        Player* player = handler->getSelectedPlayerOrSelf();
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -81,7 +81,7 @@ public:
 
     static bool HandleQuestAdd(ChatHandler* handler, const char* args)
     {
-        Player* player = handler->getSelectedPlayer();
+        Player* player = handler->getSelectedPlayerOrSelf();
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -133,7 +133,7 @@ public:
 
     static bool HandleQuestRemove(ChatHandler* handler, const char* args)
     {
-        Player* player = handler->getSelectedPlayer();
+        Player* player = handler->getSelectedPlayerOrSelf();
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -184,7 +184,7 @@ public:
 
     static bool HandleQuestComplete(ChatHandler* handler, const char* args)
     {
-        Player* player = handler->getSelectedPlayer();
+        Player* player = handler->getSelectedPlayerOrSelf();
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -229,7 +229,7 @@ public:
 
     static bool HandleQuestReward(ChatHandler* handler, char const* args)
     {
-        Player* player = handler->getSelectedPlayer();
+        Player* player = handler->getSelectedPlayerOrSelf();
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
@@ -261,7 +261,7 @@ public:
 
     static bool HandleQuestStatus(ChatHandler* handler, char const* args)
     {
-        Player* player = handler->getSelectedPlayer();
+        Player* player = handler->getSelectedPlayerOrSelf();
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
