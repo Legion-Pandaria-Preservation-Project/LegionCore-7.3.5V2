@@ -2408,7 +2408,9 @@ bool Creature::IsInvisibleDueToDespawn() const
     if (Unit::IsInvisibleDueToDespawn())
         return true;
 
-    return !(isAlive() || m_corpseRemoveTime > time(nullptr));
+    if (isAlive() || isDying() || m_corpseRemoveTime > time(nullptr))
+        return false;
+    return true;
 }
 
 bool Creature::CanAlwaysSee(WorldObject const* obj) const
