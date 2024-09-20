@@ -1,0 +1,59 @@
+wget https://www.openssl.org/source/openssl-1.0.0.tar.gz
+tar -xzvf openssl-1.0.0.tar.gz
+cd openssl-1.0.0
+sudo ./config --prefix=/usr
+sudo make
+sudo make test
+sudo make install_sw
+
+openssl version -v 
+
+sudo apt-get -y install build-essential g++ python-dev autotools-dev libicu-dev libbz2-dev
+wget http://downloads.sourceforge.net/project/boost/boost/1.60.0/boost_1_60_0.tar.gz
+tar -zxvf boost_1_60_0.tar.gz
+cd boost_1_60_0
+
+# get the no of cpucores to make faster
+cpuCores=`cat /proc/cpuinfo | grep "cpu cores" | uniq | awk '{print $NF}'`
+echo "Available CPU cores: "$cpuCores
+./bootstrap.sh  # this will generate ./b2
+sudo ./b2 --with=all -j $cpuCores install
+
+
+cat /usr/local/include/boost/version.hpp | grep "BOOST_LIB_VERSION"
+COMPILE SERVER
+
+apt update
+apt install git clang cmake make gcc g++ libmariadbclient-dev libbz2-dev libreadline-dev libncurses-dev mariadb-server p7zip libmariadb-client-lgpl-dev-compat
+
+apt install libboost1.67-all-dev
+
+apt install libasio-dev
+apt install libzmq3-dev 
+apt install libelf-dev libdwarf-dev
+apt install libbfd-dev
+apt install libdw1 libdw-dev
+
+
+apt-get remove libssl-dev
+nano /etc/apt/sources.list
+
+deb http://security.ubuntu.com/ubuntu bionic-security main
+
+apt update
+
+apt install libssl1.0-dev
+
+
+git clone https://github.com/nathalis/NCX-LegionLegacy
+cd NCX-LegionLegacy
+mkdir build
+cd build
+
+
+cmake ../ -DCMAKE_INSTALL_PREFIX=/root/serverlegion
+# OR (extra config):
+cmake ../ -DCMAKE_INSTALL_PREFIX=/root/serverlegion -DCMAKE_C_FLAGS="-m64 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -g3 -ggdb3 -msse3 -fno-delete-null-pointer-checks -fno-strict-aliasing -frename-registers -rdynamic" -DCMAKE_CXX_FLAGS="-m64 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -g3 -ggdb3 -msse3 -fno-delete-null-pointer-checks -fno-strict-aliasing -frename-registers -rdynamic" -DCMAKE_BUILD_TYPE=Release -DWITH_COREDEBUG=0 -DTOOLS=0 -DWITH_WARNINGS=0
+
+make -j 4
+make install
