@@ -9,7 +9,7 @@ jobs:
     runs-on: windows-latest
     env:
       CMAKE_BUILD_TYPE: RelWithDebInfo
-      MYSQL_ROOT_DIR: C:/Program Files/MySQL/MySQL Server 5.7
+      MYSQL_ROOT_DIR: C:/Program Files/MySQL/MySQL Server 8.0
       OPENSSL_ROOT_DIR: C:/libs/openssl
     steps:
     - uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
       uses: MarkusJx/install-boost@v2.4.5
       id: install-boost
       with:
-        boost_version: 1.69.0
+        boost_version: 1.78.0 
         link: static
         platform_version: 2019
         toolset: msvc
@@ -86,8 +86,8 @@ jobs:
       run: |
         cd ${{ steps.strings.outputs.build-output-dir }}/bin/${{ env.CMAKE_BUILD_TYPE }}
         copy "${{ env.MYSQL_ROOT_DIR }}/lib/libmysql.dll" libmysql.dll
-        copy "${{ env.OPENSSL_ROOT_DIR }}/bin/libssl-1_1-x64.dll" libssl-1_1-x64.dll
-        copy "${{ env.OPENSSL_ROOT_DIR }}/bin/libcrypto-1_1-x64" libcrypto-1_1-x64
+        copy "${{ env.OPENSSL_ROOT_DIR }}/bin/libssl-3-x64.dll" libssl-3-x64.dll
+        copy "${{ env.OPENSSL_ROOT_DIR }}/bin/libcrypto-3-x64.dll" libcrypto-3-x64.dll
         copy "${{ env.OPENSSL_ROOT_DIR }}/bin/legacy.dll" legacy.dll
       
     - name: Check binaries
@@ -100,6 +100,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         path: ${{ steps.strings.outputs.build-output-dir }}/bin/${{ env.CMAKE_BUILD_TYPE }}
-        name: TrinityCoreMasterWin64VS2019
+        name: TrinityCoreMasterWin64VS2022
         # Set a custom retention for artifacts
         #retention-days: 7
