@@ -1,5 +1,6 @@
-[# ![logo]([(https://avatars.mds.yandex.net/get-shedevrum/14320091/img_65c61d8678cd11efb4b6aac5d6831a3e/orig))](https://avatars.mds.yandex.net/get-shedevrum/14320091/img_65c61d8678cd11efb4b6aac5d6831a3e/orig)
-# Nordrassil Core 
+![image](https://github.com/user-attachments/assets/4dfadda8-9676-416d-9895-2ac1e524ae18)
+
+# NLegends of Azeroth TeaM 2024
 VS 2017 x64
 boost 1.64
 openssl 1.0
