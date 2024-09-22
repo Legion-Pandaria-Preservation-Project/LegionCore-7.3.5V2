@@ -1,6 +1,7 @@
-![image](https://github.com/user-attachments/assets/4dfadda8-9676-416d-9895-2ac1e524ae18)
+![image](https://github.com/user-attachments/assets/977161b1-aba7-405c-8b5b-d78a603a0ec7)
 
-# NLegends of Azeroth TeaM 2024
+
+# Legends of Azeroth TeaM 2024
 VS 2017 x64
 boost 1.64
 openssl 1.0
