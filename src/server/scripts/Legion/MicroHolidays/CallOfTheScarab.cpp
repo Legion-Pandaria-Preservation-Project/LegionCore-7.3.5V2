@@ -126,7 +126,7 @@ public:
 
                 if (AllianceScore > HordeScore)
                 {
-                    WorldDatabase.PExecute("UPDATE game_event SET start_time='0000-00-00 00:00:00' WHERE eventEntry = 76");
+                    WorldDatabase.PExecute("UPDATE game_event SET start_time='1970-01-01 00:00:01' WHERE eventEntry = 76");
                     WorldDatabase.PExecute("UPDATE game_event SET start_time=NOW() WHERE eventEntry = 77");
 
                     if (sGameEventMgr->IsActiveEvent(EVENT_HORDE_FLAG))
@@ -137,7 +137,7 @@ public:
                 }
                 else if (HordeScore > AllianceScore)
                 {
-                    WorldDatabase.PExecute("UPDATE game_event SET start_time='0000-00-00 00:00:00' WHERE eventEntry = 77");
+                    WorldDatabase.PExecute("UPDATE game_event SET start_time='1970-01-01 00:00:01' WHERE eventEntry = 77");
                     WorldDatabase.PExecute("UPDATE game_event SET start_time=NOW() WHERE eventEntry = 76");
 
                     if (sGameEventMgr->IsActiveEvent(EVENT_ALLIANCE_FLAG))
