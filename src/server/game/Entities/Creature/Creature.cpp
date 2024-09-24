@@ -2408,7 +2408,9 @@ bool Creature::IsInvisibleDueToDespawn() const
     if (Unit::IsInvisibleDueToDespawn())
         return true;
 
-    return !(isAlive() || m_corpseRemoveTime > time(nullptr));
+    if (isAlive() || isDying() || m_corpseRemoveTime > time(nullptr))
+        return false;
+    return true;
 }
 
 bool Creature::CanAlwaysSee(WorldObject const* obj) const
@@ -2795,7 +2797,7 @@ bool Creature::isElite() const
         return false;
 
     uint32 rank = GetCreatureTemplate()->Classification;
-    return rank == CREATURE_CLASSIFICATION_ELITE || rank == CREATURE_CLASSIFICATION_RARE_ELITE || rank == CREATURE_CLASSIFICATION_WORLDBOSS;
+    return rank != CREATURE_CLASSIFICATION_NORMAL && rank != CREATURE_CLASSIFICATION_RARE;
 }
 
 bool Creature::isWorldBoss() const

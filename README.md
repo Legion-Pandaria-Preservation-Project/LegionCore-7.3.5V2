@@ -1,5 +1,7 @@
-# ![logo](https://github.com/Devir7/Legion_Proyect/blob/V2/icono-Nordrassil-Gold.png)
-# Nordrassil Core 
+![image](https://github.com/user-attachments/assets/977161b1-aba7-405c-8b5b-d78a603a0ec7)
+
+
+# Legends of Azeroth TeaM 2024
 VS 2017 x64
 boost 1.64
 openssl 1.0
