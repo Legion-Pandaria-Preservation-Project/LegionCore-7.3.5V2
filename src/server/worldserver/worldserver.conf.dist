@@ -44,6 +44,15 @@
 Game.Build.Version = 26124
 
 #
+#    Game.Patch
+#        Description: Best effort attempt to block content up till a certain patch.
+#                     Combine this setting with the SQL files from the sql/optional folder.
+#        Default:     3  - (All 7.3.5 content available)
+#                     2  - (All 7.2.* content available, content from 7.3+ is blocked)
+#                     1  - (All 7.1.* content available, content from 7.2+ is blocked)
+Game.Patch = 3
+
+#
 ###################################################################################################
 
 ###################################################################################################
@@ -192,6 +201,23 @@ BindIP = "0.0.0.0"
 ThreadPool = 2
 
 #
+#    SourceDirectory
+#        Description: The path to your TrinityCore source directory.
+#                     If the path is left empty, the built-in CMAKE_SOURCE_DIR is used.
+#        Example:     "../TrinityCore"
+#        Default:     ""
+SourceDirectory  = ""
+#
+#    MySQLExecutable
+#        Description: The path to your mysql cli binary.
+#                     If the path is left empty, built-in path from cmake is used.
+#        Example:     "C:/Program Files/MySQL/MySQL Server 5.6/bin/mysql.exe"
+#                     "mysql.exe"
+#                     "/usr/bin/mysql"
+#        Default:     ""
+MySQLExecutable = ""
+
+#
 #    CMakeCommand
 #        Description: The path to your CMake binary.
 #                     If the path is left empty, the built-in CMAKE_COMMAND is used.
@@ -232,6 +258,102 @@ MySQLExecutable = ""
 
 #
 ###################################################################################################
+###################################################################################################
+# NETWORK CONFIG
+#
+#    Network.Threads
+#        Description: Number of threads for network.
+#         Default:    1 - (Recommended 1 thread per 1000 connections)
+
+Network.Threads = 4
+
+#
+#    Network.OutKBuff
+#        Description: Amount of memory (in bytes) used for the output kernel buffer (see SO_SNDBUF
+#                     socket option, TCP manual).
+#        Default:     -1 - (Use system default setting)
+
+Network.OutKBuff = -1
+
+#
+#    Network.OutUBuff
+#        Description: Amount of memory (in bytes) reserved in the user space per connection for
+#                     output buffering.
+#         Default:    65536
+
+Network.OutUBuff = 65536
+
+#
+#    Network.TcpNoDelay:
+#        Description: TCP Nagle algorithm setting.
+#         Default:    0 - (Enabled, Less traffic, More latency)
+#                     1 - (Disabled, More traffic, Less latency, TCP_NO_DELAY)
+
+Network.TcpNodelay = 1
+
+#
+###################################################################################################
+
+###################################################################################################
+# CONSOLE AND REMOTE ACCESS
+#
+#    Console.Enable
+#        Description: Enable console.
+#        Default:     1 - (Enabled)
+#                     0 - (Disabled)
+
+Console.Enable = 1
+
+#
+#    Ra.Enable
+#        Description: Enable remote console (telnet).
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+Ra.Enable = 0
+
+#
+#    Ra.IP
+#        Description: Bind remote access to IP/hostname.
+#        Default:     "0.0.0.0" - (Bind to all IPs on the system)
+
+Ra.IP = "0.0.0.0"
+
+#
+#    Ra.Port
+#        Description: TCP port to reach the remote console.
+#        Default:     3443
+
+Ra.Port = 3443
+
+#
+#    Ra.MinLevel
+#        Description: Required security level to use the remote console.
+#        Default:     3
+
+Ra.MinLevel = 3
+
+#
+#    SOAP.Enable
+#        Description: Enable soap service
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+SOAP.Enabled = 0
+
+#
+#    SOAP.IP
+#        Description: Bind SOAP service to IP/hostname
+#        Default:     "127.0.0.1" - (Bind to localhost)
+
+SOAP.IP = "127.0.0.1"
+
+#
+#    SOAP.Port
+#        Description: TCP port to reach the SOAP service.
+#        Default:     7878
+
+SOAP.Port = 7878
 
 ###################################################################################################
 # PERFORMANCE SETTINGS
@@ -542,104 +664,6 @@ SoloLFG = 4
 
 #
 ###################################################################################################
-
-###################################################################################################
-# SERVER LOGGING
-#
-#    PidFile
-#        Description: World daemon PID file
-#        Example:     "./worldd.pid" - (Enabled)
-#        Default:     ""             - (Disabled)
-
-PidFile = ""
-
-#
-#    PacketLogFile
-#        Description: Binary packet logging file for the world server.
-#                     Filename extension must be .bin to be parsable with WowPacketParser.
-#        Example:     "World.bin" - (Enabled)
-#        Default:     ""          - (Disabled)
-
-PacketLogFile = ""
-
-#
-#    ChatLogs.Channel
-#        Description: Log custom channel chat.
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-ChatLogs.Channel = 0
-
-#
-#    ChatLogs.Whisper
-#        Description: Log whispers between players.
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-ChatLogs.Whisper = 0
-
-#
-#    ChatLogs.SysChan
-#        Description: Log system channel messages.
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-ChatLogs.SysChan = 0
-
-#
-#    ChatLogs.Party
-#        Description: Log party chat.
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-
-ChatLogs.Party = 0
-
-#
-#    ChatLogs.Raid
-#        Description: Log raid chat.
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-
-ChatLogs.Raid = 0
-
-#
-#    ChatLogs.Guild
-#        Description: Log guild chat.
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-ChatLogs.Guild = 0
-
-#
-#    ChatLogs.Public
-#        Description: Log public chat (say/yell/emote).
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-ChatLogs.Public = 0
-
-#
-#    ChatLogs.Addon
-#        Description: Log addon messages.
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-ChatLogs.Addon = 0
-
-#
-#    ChatLogs.BattleGround
-#        Description: Log battleground chat.
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-ChatLogs.BattleGround = 0
-
-# Extended Logging system configuration moved to end of file (on purpose)
-#
-###################################################################################################
-
 ###################################################################################################
 # SERVER SETTINGS
 #
@@ -1345,7 +1369,7 @@ DBC.EnforceItemAttributes = 1
 AccountInstancesPerHour = 10
 
 #
-###################################################################################################
+##################################################################################################
 # UPDATE SETTINGS
 #
 #    Updates.EnableDatabases
@@ -1387,7 +1411,6 @@ Updates.Redundancy  = 1
 #                     1 - (Enabled)
 
 Updates.ArchivedRedundancy = 0
-
 #
 #    Updates.AllowRehash
 #        Description: Inserts the current file hash in the database if it is left empty.
@@ -1408,6 +1431,8 @@ Updates.AllowRehash = 1
 #                    -1 - (Enabled - unlimited)
 
 Updates.CleanDeadRefMaxCount = 3
+#
+###################################################################################################
 
 #
 ###################################################################################################
@@ -2776,107 +2801,6 @@ PVP.ItemLevelCap = 524
 
 #
 ###################################################################################################
-
-###################################################################################################
-# NETWORK CONFIG
-#
-#    Network.Threads
-#        Description: Number of threads for network.
-#         Default:    1 - (Recommended 1 thread per 1000 connections)
-
-Network.Threads = 4
-
-#
-#    Network.OutKBuff
-#        Description: Amount of memory (in bytes) used for the output kernel buffer (see SO_SNDBUF
-#                     socket option, TCP manual).
-#        Default:     -1 - (Use system default setting)
-
-Network.OutKBuff = -1
-
-#
-#    Network.OutUBuff
-#        Description: Amount of memory (in bytes) reserved in the user space per connection for
-#                     output buffering.
-#         Default:    65536
-
-Network.OutUBuff = 65536
-
-#
-#    Network.TcpNoDelay:
-#        Description: TCP Nagle algorithm setting.
-#         Default:    0 - (Enabled, Less traffic, More latency)
-#                     1 - (Disabled, More traffic, Less latency, TCP_NO_DELAY)
-
-Network.TcpNodelay = 1
-
-#
-###################################################################################################
-
-###################################################################################################
-# CONSOLE AND REMOTE ACCESS
-#
-#    Console.Enable
-#        Description: Enable console.
-#        Default:     1 - (Enabled)
-#                     0 - (Disabled)
-
-Console.Enable = 1
-
-#
-#    Ra.Enable
-#        Description: Enable remote console (telnet).
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-Ra.Enable = 0
-
-#
-#    Ra.IP
-#        Description: Bind remote access to IP/hostname.
-#        Default:     "0.0.0.0" - (Bind to all IPs on the system)
-
-Ra.IP = "0.0.0.0"
-
-#
-#    Ra.Port
-#        Description: TCP port to reach the remote console.
-#        Default:     3443
-
-Ra.Port = 3443
-
-#
-#    Ra.MinLevel
-#        Description: Required security level to use the remote console.
-#        Default:     3
-
-Ra.MinLevel = 3
-
-#
-#    SOAP.Enable
-#        Description: Enable soap service
-#        Default:     0 - (Disabled)
-#                     1 - (Enabled)
-
-SOAP.Enabled = 0
-
-#
-#    SOAP.IP
-#        Description: Bind SOAP service to IP/hostname
-#        Default:     "127.0.0.1" - (Bind to localhost)
-
-SOAP.IP = "127.0.0.1"
-
-#
-#    SOAP.Port
-#        Description: TCP port to reach the SOAP service.
-#        Default:     7878
-
-SOAP.Port = 7878
-
-#
-###################################################################################################
-
 ###################################################################################################
 # CHARACTER DELETE OPTIONS
 #
@@ -4248,7 +4172,7 @@ PvPKill.Announcer = 1
 #                     1 (enabled)
 
 
-Auto.Say.Hello = 0
+Auto.Say.Hello = 1
 
 #
 #     Bpay.Enabled
@@ -4320,5 +4244,98 @@ PlayedTimeReward.Money    = 1
 PlayedTimeReward.Item     = 505056
 #
 ####################################################################################################
+###################################################################################################
+# SERVER LOGGING
+#
+#    PidFile
+#        Description: World daemon PID file
+#        Example:     "./worldd.pid" - (Enabled)
+#        Default:     ""             - (Disabled)
 
+PidFile = ""
+
+#
+#    PacketLogFile
+#        Description: Binary packet logging file for the world server.
+#                     Filename extension must be .bin to be parsable with WowPacketParser.
+#        Example:     "World.bin" - (Enabled)
+#        Default:     ""          - (Disabled)
+
+PacketLogFile = ""
+
+#
+#    ChatLogs.Channel
+#        Description: Log custom channel chat.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+ChatLogs.Channel = 0
+
+#
+#    ChatLogs.Whisper
+#        Description: Log whispers between players.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+ChatLogs.Whisper = 0
+
+#
+#    ChatLogs.SysChan
+#        Description: Log system channel messages.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+ChatLogs.SysChan = 0
+
+#
+#    ChatLogs.Party
+#        Description: Log party chat.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+
+ChatLogs.Party = 0
+
+#
+#    ChatLogs.Raid
+#        Description: Log raid chat.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+
+ChatLogs.Raid = 0
+
+#
+#    ChatLogs.Guild
+#        Description: Log guild chat.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+ChatLogs.Guild = 0
+
+#
+#    ChatLogs.Public
+#        Description: Log public chat (say/yell/emote).
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+ChatLogs.Public = 0
+
+#
+#    ChatLogs.Addon
+#        Description: Log addon messages.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+ChatLogs.Addon = 0
+
+#
+#    ChatLogs.BattleGround
+#        Description: Log battleground chat.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+ChatLogs.BattleGround = 0
+
+# Extended Logging system configuration moved to end of file (on purpose)
 ###################################################################################################
