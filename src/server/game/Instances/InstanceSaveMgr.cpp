@@ -112,20 +112,20 @@ InstanceSave* InstanceSaveManager::AddInstanceSave(uint32 mapId, uint32 instance
     const MapEntry* entry = sMapStore.LookupEntry(mapId);
     if (!entry)
     {
-        TC_LOG_ERROR(LOG_FILTER_GENERAL, "InstanceSaveManager::AddInstanceSave: wrong mapid = %d, instanceid = %d!", mapId, instanceId);
+        TC_LOG_ERROR("misc", "InstanceSaveManager::AddInstanceSave: wrong mapid = %d, instanceid = %d!", mapId, instanceId);
         return nullptr;
     }
 
     if (instanceId == 0)
     {
-        TC_LOG_ERROR(LOG_FILTER_GENERAL, "InstanceSaveManager::AddInstanceSave: mapid = %d, wrong instanceid = %d!", mapId, instanceId);
+        TC_LOG_ERROR("misc", "InstanceSaveManager::AddInstanceSave: mapid = %d, wrong instanceid = %d!", mapId, instanceId);
         return nullptr;
     }
 
     DifficultyEntry const* difficultyEntry = sDifficultyStore.LookupEntry(difficulty);
     if (!difficultyEntry || difficultyEntry->InstanceType != entry->InstanceType)
     {
-        TC_LOG_ERROR(LOG_FILTER_GENERAL, "InstanceSaveManager::AddInstanceSave: mapid = %d, instanceid = %d, wrong dificalty %u!", mapId, instanceId, difficulty);
+        TC_LOG_ERROR("misc", "InstanceSaveManager::AddInstanceSave: mapid = %d, instanceid = %d, wrong dificalty %u!", mapId, instanceId, difficulty);
         return nullptr;
     }
 
@@ -138,7 +138,7 @@ InstanceSave* InstanceSaveManager::AddInstanceSave(uint32 mapId, uint32 instance
         ScheduleReset(true, _resetTime, InstResetEvent(0, mapId, difficulty, instanceId));
     }
 
-    TC_LOG_DEBUG(LOG_FILTER_MAPS, "InstanceSaveManager::AddInstanceSave: mapid = %d, instanceid = %d", mapId, instanceId);
+    TC_LOG_DEBUG("maps", "InstanceSaveManager::AddInstanceSave: mapid = %d, instanceid = %d", mapId, instanceId);
 
     if (!resetTime)
         if (MapDifficultyEntry const* mapDiff = sDB2Manager.GetMapDifficultyData(mapId, difficulty))
@@ -158,7 +158,7 @@ InstanceSave* InstanceSaveManager::GetInstanceSave(uint32 InstanceId)
 
 void InstanceSaveManager::DeleteInstanceFromDB(uint32 instanceid)
 {
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_GROUP_INSTANCE_BY_INSTANCE);
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_GROUP_INSTANCE_BY_INSTANCE);
     stmt->setUInt32(0, instanceid);
     CharacterDatabase.DirectExecute(stmt);
 
@@ -314,7 +314,7 @@ void InstanceSaveManager::LoadInstances()
 
     // Delete invalid character_instance and group_instance references
     CharacterDatabase.DirectExecute("DELETE ci.* FROM character_instance AS ci LEFT JOIN characters AS c ON ci.guid = c.guid WHERE c.guid IS NULL");
-    CharacterDatabase.DirectExecute("DELETE gi.* FROM group_instance     AS gi LEFT JOIN groups     AS g ON gi.guid = g.guid WHERE g.guid IS NULL");
+    CharacterDatabase.DirectExecute("DELETE gi.* FROM group_instance     AS gi LEFT JOIN `groups`     AS g ON gi.guid = g.guid WHERE g.guid IS NULL");
 
     // Delete invalid instance references
     // CharacterDatabase.DirectExecute("DELETE i.* FROM instance AS i LEFT JOIN character_instance AS ci ON i.id = ci.instance LEFT JOIN group_instance AS gi ON i.id = gi.instance WHERE ci.guid IS NULL AND gi.guid IS NULL");
@@ -332,7 +332,7 @@ void InstanceSaveManager::LoadInstances()
     // Initialize instance id storage (Needs to be done after the trash has been clean out)
     sMapMgr->InitInstanceIds();
 
-    TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded instances in %u ms", GetMSTimeDiffToNow(oldMSTime));
+    TC_LOG_INFO("server.loading", ">> Loaded instances in %u ms", GetMSTimeDiffToNow(oldMSTime));
 
 }
 
@@ -366,7 +366,7 @@ void InstanceSaveManager::ScheduleReset(bool add, time_t time, InstResetEvent ev
             }
 
             if (itr == m_resetTimeQueue.end())
-                TC_LOG_ERROR(LOG_FILTER_GENERAL, "InstanceSaveManager::ScheduleReset: cannot cancel the reset, the event(%d, %d, %d) was not found!", event.type, event.mapid, event.instanceId);
+                TC_LOG_ERROR("misc", "InstanceSaveManager::ScheduleReset: cannot cancel the reset, the event(%d, %d, %d) was not found!", event.type, event.mapid, event.instanceId);
         }
     }
     else
@@ -398,7 +398,7 @@ void InstanceSaveManager::Update()
 
 void InstanceSaveManager::_ResetSave(InstanceSaveHashMap::iterator &itr)
 {
-    // TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, "InstanceSaveManager::_ResetSave GetMapId %u GetDifficultyID %u GetResetTime %u", itr->second->GetMapId(), itr->second->GetDifficultyID(), itr->second->GetResetTime());
+    // TC_LOG_INFO("server.loading", "InstanceSaveManager::_ResetSave GetMapId %u GetDifficultyID %u GetResetTime %u", itr->second->GetMapId(), itr->second->GetDifficultyID(), itr->second->GetResetTime());
 
     // unbind all players bound to the instance
     // do not allow UnbindInstance to automatically unload the InstanceSaves
@@ -428,7 +428,7 @@ void InstanceSaveManager::_ResetSave(InstanceSaveHashMap::iterator &itr)
 
 void InstanceSaveManager::_ResetInstance(uint32 mapid, uint32 instanceId)
 {
-    // TC_LOG_DEBUG(LOG_FILTER_SERVER_LOADING, "InstanceSaveMgr::_ResetInstance mapid %u, instanceId %u", mapid, instanceId);
+    // TC_LOG_DEBUG("server.loading", "InstanceSaveMgr::_ResetInstance mapid %u, instanceId %u", mapid, instanceId);
 
     Map const* map = sMapMgr->CreateBaseMap(mapid);
     if (!map->Instanceable())
@@ -451,7 +451,7 @@ void InstanceSaveManager::_ResetInstance(uint32 mapid, uint32 instanceId)
         Map::DeleteRespawnTimesInDB(mapid, instanceId);
 }
 
-void InstanceSaveManager::ResetOrWarnAll(uint32 mapid, Difficulty difficulty, SQLTransaction& trans)
+void InstanceSaveManager::ResetOrWarnAll(uint32 mapid, Difficulty difficulty, CharacterDatabaseTransaction& trans)
 {
     // global reset for all instances of the given map
     MapEntry const* mapEntry = sMapStore.LookupEntry(mapid);
@@ -473,14 +473,14 @@ void InstanceSaveManager::ResetOrWarnAll(uint32 mapid, Difficulty difficulty, SQ
             else
                 ++itr;
 
-            // TC_LOG_DEBUG(LOG_FILTER_SERVER_LOADING, "InstanceSaveMgr::ResetOrWarnAll mapid %u, difficulty %u time %u GetResetTime %u", mapid, difficulty, time(NULL), (itr->second->GetResetTime() + MONTH));
+            // TC_LOG_DEBUG("server.loading", "InstanceSaveMgr::ResetOrWarnAll mapid %u, difficulty %u time %u GetResetTime %u", mapid, difficulty, time(NULL), (itr->second->GetResetTime() + MONTH));
         }
         else
             ++itr;
     }
 
     // delete them from the DB, even if not loaded
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_INSTANCE_BY_MAP_DIFF);
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_INSTANCE_BY_MAP_DIFF);
     stmt->setUInt16(0, uint16(mapid));
     stmt->setUInt8(1, uint8(difficulty));
     stmt->setUInt32(2, time(nullptr));

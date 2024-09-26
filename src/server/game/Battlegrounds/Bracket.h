@@ -1,5 +1,4 @@
 /*
- * Copyright (C)   2013    uWoW <http://uwow.biz>
  * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
@@ -44,7 +43,7 @@ public:
     uint16 getMMV() const { return m_mmv; }
     int16 getLastMMRChange() const{ return m_mmr_lastChage; }
 
-    void SaveStats(SQLTransaction* trans = nullptr);
+    void SaveStats(CharacterDatabaseTransaction* trans = nullptr);
 
     uint16 FinishGame(bool win, uint16 opponents_mmv, bool winnerNone = false);
     uint32 GetBracketInfo(BracketInfoType i) const { return values[i]; }

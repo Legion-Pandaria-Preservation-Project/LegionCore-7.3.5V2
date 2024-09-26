@@ -56,7 +56,7 @@ void WorldSession::HandleSendMail(WorldPackets::Mail::SendMail& packet)
         return;
     }
 
-    TC_LOG_INFO(LOG_FILTER_NETWORKIO, "Player %u includes %u items, " UI64FMTD " copper and " UI64FMTD " COD copper with stationery = %u", player->GetGUIDLow(), packet.Info.Attachments.size(), packet.Info.SendMoney, packet.Info.Cod, packet.Info.StationeryID);
+    TC_LOG_INFO("network", "Player %u includes %u items, " UI64FMTD " copper and " UI64FMTD " COD copper with stationery = %u", player->GetGUIDLow(), packet.Info.Attachments.size(), packet.Info.SendMoney, packet.Info.Cod, packet.Info.StationeryID);
 
     if (!CanOpenMailBox(packet.Info.Mailbox))
         return;
@@ -111,13 +111,13 @@ void WorldSession::HandleSendMail(WorldPackets::Mail::SendMail& packet)
 
     if (receiverGuid.IsEmpty())
     {
-        TC_LOG_INFO(LOG_FILTER_NETWORKIO, "Player %u is sending mail to %s (GUID: not existed!) with subject %s and body %s includes %u items, " UI64FMTD " copper and " UI64FMTD " COD copper with stationery = %u",
+        TC_LOG_INFO("network", "Player %u is sending mail to %s (GUID: not existed!) with subject %s and body %s includes %u items, " UI64FMTD " copper and " UI64FMTD " COD copper with stationery = %u",
             player->GetGUIDLow(), packet.Info.Target.c_str(), packet.Info.Subject.c_str(), packet.Info.Body.c_str(), packet.Info.Attachments.size(), packet.Info.SendMoney, packet.Info.Cod, packet.Info.StationeryID);
         player->SendMailResult(0, MAIL_SEND, MAIL_ERR_RECIPIENT_NOT_FOUND);
         return;
     }
 
-    TC_LOG_INFO(LOG_FILTER_NETWORKIO, "Player %u is sending mail to %s (GUID: %u) with subject %s and body %s includes %u items, " UI64FMTD " copper and " UI64FMTD " COD copper with stationery = %u",
+    TC_LOG_INFO("network", "Player %u is sending mail to %s (GUID: %u) with subject %s and body %s includes %u items, " UI64FMTD " copper and " UI64FMTD " COD copper with stationery = %u",
         player->GetGUIDLow(), packet.Info.Target.c_str(), receiverGuid.GetGUIDLow(), packet.Info.Subject.c_str(), packet.Info.Body.c_str(), packet.Info.Attachments.size(), packet.Info.SendMoney, packet.Info.Cod, packet.Info.StationeryID);
 
     if (player->GetGUID() == receiverGuid)
@@ -272,7 +272,7 @@ void WorldSession::HandleSendMail(WorldPackets::Mail::SendMail& packet)
 
     MailDraft draft(packet.Info.Subject, packet.Info.Body);
 
-    SQLTransaction trans = CharacterDatabase.BeginTransaction();
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
 
     if (!packet.Info.Attachments.empty() || packet.Info.SendMoney > 0)
     {
@@ -302,7 +302,7 @@ void WorldSession::HandleSendMail(WorldPackets::Mail::SendMail& packet)
             sLog->outCommand(GetAccountId(), "GM %s (Account: %u) mail money: " UI64FMTD " to player: %s (Account: %u)", GetPlayerName().c_str(), GetAccountId(), packet.Info.SendMoney, packet.Info.Target.c_str(), rc_account);
 
         if (packet.Info.SendMoney >= sWorld->getIntConfig(CONFIG_LOG_GOLD_FROM))
-            TC_LOG_DEBUG(LOG_FILTER_GOLD, "SendMail Player %s GUID %u (Account: %u) mail money: " UI64FMTD " to player: %s GUID %u (Account: %u)", GetPlayerName().c_str(), _player->GetGUIDLow(), GetAccountId(), packet.Info.SendMoney, packet.Info.Target.c_str(), receiverGuid.GetGUIDLow(), rc_account);
+            TC_LOG_DEBUG("auctionHouse", "SendMail Player %s GUID %u (Account: %u) mail money: " UI64FMTD " to player: %s GUID %u (Account: %u)", GetPlayerName().c_str(), _player->GetGUIDLow(), GetAccountId(), packet.Info.SendMoney, packet.Info.Target.c_str(), receiverGuid.GetGUIDLow(), rc_account);
     }
 
     uint32 deliver_delay = needItemDelay ? sWorld->getIntConfig(CONFIG_MAIL_DELIVERY_DELAY) : 0;
@@ -374,9 +374,9 @@ void WorldSession::HandleMailReturnToSender(WorldPackets::Mail::MailReturnToSend
 
     //we can return mail now
     //so firstly delete the old one
-    SQLTransaction trans = CharacterDatabase.BeginTransaction();
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
 
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_MAIL_BY_ID);
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_MAIL_BY_ID);
     stmt->setUInt32(0, packet.MailID);
     trans->Append(stmt);
 
@@ -449,7 +449,7 @@ void WorldSession::HandleMailTakeItem(WorldPackets::Mail::MailTakeItem& packet)
     uint8 msg = _player->CanStoreItem(NULL_BAG, NULL_SLOT, dest, item, false);
     if (msg == EQUIP_ERR_OK)
     {
-        SQLTransaction trans = CharacterDatabase.BeginTransaction();
+        CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
         m->RemoveItem(packet.AttachID);
         m->removedItems.push_back(packet.AttachID);
 
@@ -485,9 +485,9 @@ void WorldSession::HandleMailTakeItem(WorldPackets::Mail::MailTakeItem& packet)
             if (m->COD >= sWorld->getIntConfig(CONFIG_LOG_GOLD_FROM))
             {
                 if (item)
-                    TC_LOG_DEBUG(LOG_FILTER_GOLD, "MailTakeItem: %s GUID %u (Account: %u) receive mail item: %s (Entry: %u Count: %u) and send COD money: " UI64FMTD " to player: %u (Account: %u)", GetPlayerName().c_str(), _player->GetGUIDLow(), GetAccountId(), item->GetTemplate()->GetName()->Str[_player->GetSession()->GetSessionDbLocaleIndex()], item->GetEntry(), item->GetCount(), m->COD, sender_guid.GetGUIDLow(), sender_accId);
+                    TC_LOG_DEBUG("auctionHouse", "MailTakeItem: %s GUID %u (Account: %u) receive mail item: %s (Entry: %u Count: %u) and send COD money: " UI64FMTD " to player: %u (Account: %u)", GetPlayerName().c_str(), _player->GetGUIDLow(), GetAccountId(), item->GetTemplate()->GetName()->Str[_player->GetSession()->GetSessionDbLocaleIndex()], item->GetEntry(), item->GetCount(), m->COD, sender_guid.GetGUIDLow(), sender_accId);
                 else
-                    TC_LOG_DEBUG(LOG_FILTER_GOLD, "MailTakeItem: %s GUID %u (Account: %u) receive send COD money: " UI64FMTD " to player: %u (Account: %u)", GetPlayerName().c_str(), _player->GetGUIDLow(), GetAccountId(), m->COD, sender_guid.GetGUIDLow(), sender_accId);
+                    TC_LOG_DEBUG("auctionHouse", "MailTakeItem: %s GUID %u (Account: %u) receive send COD money: " UI64FMTD " to player: %u (Account: %u)", GetPlayerName().c_str(), _player->GetGUIDLow(), GetAccountId(), m->COD, sender_guid.GetGUIDLow(), sender_accId);
             }
 
             if (receive || sender_accId)
@@ -541,7 +541,7 @@ void WorldSession::HandleMailTakeMoney(WorldPackets::Mail::MailTakeMoney& packet
     player->m_mailsUpdated = true;
 
     // save money and mail to prevent cheating
-    SQLTransaction trans = CharacterDatabase.BeginTransaction();
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
     player->SaveGoldToDB(trans);
     player->_SaveMail(trans);
     CharacterDatabase.CommitTransaction(trans);
@@ -564,8 +564,6 @@ void WorldSession::HandleGetMailList(WorldPackets::Mail::MailGetList& packet)
     Trinity::VisitNearbyObject(player, 5.0f, searcher);
 
     WorldPackets::Mail::MailListResult response;
-    response.TotalNumRecords = player->GetMailSize();
-
     time_t cur_time = time(nullptr);
 
     // create bit stream
@@ -575,11 +573,11 @@ void WorldSession::HandleGetMailList(WorldPackets::Mail::MailGetList& packet)
         if ((*itr)->state == MAIL_STATE_DELETED || cur_time < (*itr)->deliver_time)
             continue;
 
-        response.Mails.emplace_back(*itr, player);
-
         // max. 50 mails can be sent
-        if (response.Mails.size() >= 50)
-            break;
+        if (response.Mails.size() < 50)
+            response.Mails.emplace_back(*itr, player);
+
+        ++response.TotalNumRecords;
     }
 
     SendPacket(response.Write());
@@ -628,7 +626,7 @@ void WorldSession::HandleMailCreateTextItem(WorldPackets::Mail::MailCreateTextIt
     bodyItem->SetUInt32Value(ITEM_FIELD_CREATOR, m->sender);
     bodyItem->SetFlag(ITEM_FIELD_DYNAMIC_FLAGS, ITEM_FLAG_READABLE);
 
-    TC_LOG_INFO(LOG_FILTER_NETWORKIO, "HandleMailCreateTextItem mailid=%u", packet.MailID);
+    TC_LOG_INFO("network", "HandleMailCreateTextItem mailid=%u", packet.MailID);
 
     ItemPosCountVec dest;
     uint8 msg = _player->CanStoreItem(NULL_BAG, NULL_SLOT, dest, bodyItem, false);

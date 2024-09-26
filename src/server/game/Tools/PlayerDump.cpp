@@ -16,6 +16,11 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+playerdump.cpp if you get pdump
+unknown errors try using DTT_CHAR_TABLE.
+*/
+
 #include "Common.h"
 #include "PlayerDump.h"
 #include "DatabaseEnv.h"
@@ -26,7 +31,7 @@
 #include "CharacterData.h"
 #include "GlobalFunctional.h"
 
-#define DUMP_TABLE_COUNT 31
+#define DUMP_TABLE_COUNT 32
 struct DumpTable
 {
     char const* name;
@@ -34,45 +39,45 @@ struct DumpTable
     char const* select;
 };
 
+//REMEMBER TO UPDATE DUMP_TABLE_COUNT!!!
 static DumpTable dumpTables[DUMP_TABLE_COUNT] =
 {
-    { "characters",                       DTT_CHARACTER, "`guid`, `account`, `name`, `slot`, `race`, `class`, `gender`, `level`, `xp`, `money`, `skin`, `face`, `hairStyle`, `hairColor`, `tattoo`, `horn`, `inventorySlots`, `blindfold`, `facialStyle`, `bankSlots`, `drunk`, `playerFlags`, `playerFlagsEx`, `position_x`, `position_y`, `position_z`, `map`, `instance_id`, `dungeonDifficulty`, `raidDifficulty`, `legacyRaidDifficulty`, `orientation`, `taximask`, `online`, `cinematic`, `totaltime`, `leveltime`, `created_time`, `logout_time`, `is_logout_resting`, `rest_bonus`, `trans_x`, `trans_y`, `trans_z`, `trans_o`, `transguid`, `extra_flags`, `at_login`, `zone`, `death_expire_time`, `taxi_path`, `totalKills`, `todayKills`, `yesterdayKills`, `killPoints`, `chosenTitle`, `watchedFaction`, `lfgBonusFaction`, `health`, `mana`, `latency`, `activespec`, `specialization`, `lootspecialization`, `exploredZones`, `equipmentCache`, `knownTitles`, `actionBars`, `currentpetnumber`, `petslot`, `grantableLevels`, `deleteInfos_Account`, `deleteInfos_Name`, `deleteDate`, `LastCharacterUndelete`, `parking`, `OriginalOwner`, `copy`, `transfer_request`"},
-  //  { "character_donate",                 DTT_DONA_TABLE, "`owner_guid`, `itemguid`, `type`, `itemEntry`, `efircount`, `count`, `state`, `date`, `deletedate`, `account`"},
-    { "character_achievement",            DTT_CHAR_TABLE, "guid, achievement, date"},
-    { "character_achievement_progress",   DTT_CHAR_TABLE, "guid, criteria, counter, date"},
-    { "character_action",                 DTT_CHAR_TABLE, "guid, spec, button, action, type"},
+    { "characters",                       DTT_CHARACTER, "`guid`, `account`, `name`, `slot`, `race`, `class`, `gender`, `level`, `xp`, `money`, `skin`, `face`, `hairStyle`, `hairColor`, `tattoo`, `horn`, `inventorySlots`, `blindfold`, `facialStyle`, `bankSlots`, `drunk`, `playerFlags`, `playerFlagsEx`, `position_x`, `position_y`, `position_z`, `map`, `instance_id`, `dungeonDifficulty`, `raidDifficulty`, `legacyRaidDifficulty`, `orientation`, `taximask`, `online`, `cinematic`, `totaltime`, `leveltime`, `created_time`, `logout_time`, `is_logout_resting`, `rest_bonus`, `trans_x`, `trans_y`, `trans_z`, `trans_o`, `transguid`, `extra_flags`, `at_login`, `zone`, `death_expire_time`, `taxi_path`, `totalKills`, `todayKills`, `yesterdayKills`, `killPoints`, `chosenTitle`, `watchedFaction`, `lfgBonusFaction`, `health`, `mana`, `latency`, `activespec`, `specialization`, `lootspecialization`, `exploredZones`, `equipmentCache`, `knownTitles`, `actionBars`, `currentpetnumber`, `petslot`, `grantableLevels`, `deleteInfos_Account`, `deleteInfos_Name`, `deleteDate`, `LastCharacterUndelete`, `transfer`, `transfer_request`, `transfer_history`"},
+    { "character_donate",                 DTT_DONA_TABLE, "`owner_guid`, `itemguid`, `type`, `itemEntry`, `efircount`, `count`, `state`, `date`, `deletedate`, `account`"},
+    { "character_achievement",            DTT_CHAR_TABLE, "`guid`, `achievement`, `date`"},
+    { "character_achievement_progress",   DTT_CHAR_TABLE, "`guid`, `criteria`, `counter`, `date`"},
+    { "character_action",                 DTT_CHAR_TABLE, "`guid`, `spec`, `button`, `action`, `type`"},
     { "character_currency",               DTT_CHAR_TABLE, "`guid`, `currency`, `total_count`, `week_count`, `season_total`, `flags`, `curentcap`"},
-    { "character_declinedname",           DTT_CHAR_TABLE, "guid, genitive, dative, accusative, instrumental, prepositional"},
+    { "character_declinedname",           DTT_CHAR_TABLE, "`guid`, `genitive`, `dative`, `accusative`, `instrumental`, `prepositional`"},
     { "character_equipmentsets",          DTT_EQSET_TABLE,"`guid`, `setguid`, `setindex`, `name`, `iconname`, `ignore_mask`, `item0`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `item10`, `item11`, `item12`, `item13`, `item14`, `item15`, `item16`, `item17`, `item18`"},
-    { "character_homebind",               DTT_CHAR_TABLE, "guid, mapId, zoneId, posX, posY, posZ"},
-    { "character_inventory",              DTT_INVENTORY,  "guid, bag, slot, item"},
+    { "character_homebind",               DTT_CHAR_TABLE, "`guid`, `mapId`, `zoneId`, `posX`, `posY`, `posZ`"},
+    { "character_inventory",              DTT_INVENTORY,  "`guid`, `bag`, `slot`, `item`"},
     { "character_pet",                    DTT_PET,        "`id`, `entry`, `owner`, `modelid`, `CreatedBySpell`, `PetType`, `level`, `exp`, `Reactstate`, `name`, `renamed`, `curhealth`, `curmana`, `savetime`, `abdata`, `specialization`"},
-    { "character_pet_declinedname",       DTT_PET,        "id, owner, genitive, dative, accusative, instrumental, prepositional"},
-    { "character_queststatus",            DTT_QUEST_TABLE, "`guid`, `account`, `quest`, `status`, `timer`"},
-    { "character_queststatus_rewarded",   DTT_QUEST_TABLE, "`guid`, `account`, `quest`"},
-    { "character_queststatus_objectives", DTT_QUEST_TABLE, "`guid`, `account`, `quest`, `objective`, `data"},
-    { "character_reputation",             DTT_CHAR_TABLE, "guid, faction, standing, flags"},
-    { "character_skills",                 DTT_CHAR_TABLE, "guid, skill, value, max"},
-    { "character_spell",                  DTT_CHAR_TABLE, "guid, spell, active, disabled"},
-  //  { "character_spell_cooldown",         DTT_CHAR_TABLE, "guid, spell, item, time"},
-  //  { "character_talent",                 DTT_CHAR_TABLE, "guid, talent, spec"},
+    { "character_pet_declinedname",       DTT_PET,        "`id`, `owner`, `genitive`, `dative`, `accusative`, `instrumental`, `prepositional`"},
+    { "character_queststatus",            DTT_CHAR_TABLE, "`guid`, `account`, `quest`, `status`, `timer`"},
+    { "character_queststatus_rewarded",   DTT_CHAR_TABLE, "`guid`, `account`, `quest`"},
+    { "character_queststatus_objectives", DTT_CHAR_TABLE, "`guid`, `account`, `quest`, `objective`, `data`"},
+    { "character_reputation",             DTT_CHAR_TABLE, "`guid`, `faction`, `standing`, `flags`"},
+    { "character_skills",                 DTT_CHAR_TABLE, "`guid`, `skill`, `value`, `max`"},
+    { "character_spell",                  DTT_CHAR_TABLE, "`guid`, `spell`, `active`, `disabled`"},
+    { "character_spell_cooldown",         DTT_CHAR_TABLE, "`guid`, `spell`, `item`, `time`"},
+    { "character_talent",                 DTT_CHAR_TABLE, "`guid`, `talent`, `spec`"},
     { "character_void_storage",           DTT_VS_TABLE,   "`itemId`, `playerGuid`, `itemEntry`, `slot`, `creatorGuid`, `randomProperty`, `suffixFactor`, `randomPropertyType`, `itemGuid`"},
     { "item_instance",                    DTT_ITEM,       "`guid`, `itemEntry`, `owner_guid`, `creatorGuid`, `giftCreatorGuid`, `count`, `duration`, `charges`, `flags`, `enchantments`, `randomPropertyType`, `randomPropertyId`, `durability`, `playedTime`, `text`, `upgradeId`, `battlePetSpeciesId`, `battlePetBreedData`, `battlePetLevel`, `battlePetDisplayId`, `bonusListIDs`, `itemLevel`, `dungeonEncounterID`, `contextID`, `createdTime`, `isdonateitem`"},
-    { "mail",                             DTT_MAIL,       "id, messageType, stationery, mailTemplateId, sender, receiver, subject, body, has_items, expire_time, deliver_time, money, cod, checked"},
-    { "mail_items",                       DTT_MAIL_ITEM,  "mail_id, item_guid, receiver"},
-    { "pet_spell",                        DTT_PET_TABLE,  "guid, spell, active"},
-  //  { "pet_spell_cooldown",               DTT_PET_TABLE,  "guid, spell, time"},
+    { "mail",                             DTT_MAIL,       "`id`, `messageType`, `stationery`, `mailTemplateId`, `sender`, `receiver`, `subject`, `body`, `has_items`, `expire_time`, `deliver_time`, `money`, `cod`, `checked`"},
+    { "mail_items",                       DTT_MAIL_ITEM,  "`mail_id`, `item_guid`, `receiver`"},
+    { "pet_spell",                        DTT_PET_TABLE,  "`guid`, `spell`, `active`"},
+    { "pet_spell_cooldown",               DTT_PET_TABLE,  "`guid`, `spell`, `time`"},
     { "character_archaeology",            DTT_CHAR_TABLE, "`guid`, `sites`, `counts`, `projects`"},
     { "character_archaeology_finds",      DTT_CHAR_TABLE, "`guid`, `id`, `count`, `date`"},
-    // { "character_garrison",               DTT_CHAR_TABLE, "`guid`, `siteLevelId`, `followerActivationsRemainingToday`, `lastResTaken`, `_MissionGen`"},
-    // { "character_garrison_blueprints",    DTT_CHAR_TABLE, "`guid`, `buildingId`"},
-    // { "character_garrison_buildings",     DTT_CHAR_TABLE, "`guid`, `plotInstanceId`, `buildingId`, `timeBuilt`, `data`, `active`"},
-    // { "character_garrison_followers",     DTT_CHAR_VS_FOLLOW, "`dbId`, `guid`, `followerId`, `quality`, `level`, `itemLevelWeapon`, `itemLevelArmor`, `xp`, `currentBuilding`, `currentMission`, `status`"},
-    // { "character_garrison_shipment",      DTT_CHAR_VS_SHIP, "`dbId`, `guid`, `shipmentID`, `orderTime`"}
-    { "store_history",                    DTT_LOGIN, "`realm`, `account`, `bnet_account`, `char_guid`, `char_level`, `art_level`, `item_guid`, `item`, `bonus`, `product`, `count`, `token`, `karma`, `status`, `type`, `trans_project`, `trans_realm`, `dt_buy`, `dt_return`"},
+    //{ "character_garrison",               DTT_CHAR_TABLE, "`guid`, `siteLevelId`, `followerActivationsRemainingToday`, `lastResTaken`, `_MissionGen`"},
+    //{ "character_garrison_blueprints",    DTT_CHAR_TABLE, "`guid`, `buildingId`"},
+    //{ "character_garrison_buildings",     DTT_CHAR_TABLE, "`guid`, `plotInstanceId`, `buildingId`, `timeBuilt`, `data`, `active`"},
+    //{ "character_garrison_followers",     DTT_CHAR_VS_FOLLOW, "`dbId`, `guid`, `followerId`, `quality`, `level`, `itemLevelWeapon`, `itemLevelArmor`, `xp`, `currentBuilding`, `currentMission`, `status`"},
+    //{ "character_garrison_shipment",      DTT_CHAR_VS_SHIP, "`dbId`, `guid`, `shipmentID`, `orderTime`"},
     { "character_transmog_outfits",       DTT_CHAR_TRANSMOG, "`guid`, `setguid`, `setindex`, `name`, `iconname`, `ignore_mask`, `appearance0`, `appearance1`, `appearance2`, `appearance3`, `appearance4`, `appearance5`, `appearance6`, `appearance7`, `appearance8`, `appearance9`, `appearance10`, `appearance11`, `appearance12`, `appearance13`, `appearance14`, `appearance15`, `appearance16`, `appearance17`, `appearance18`, `mainHandEnchant`, `offHandEnchant`"},
-    { "item_instance_artifact",           DTT_ARTI_TABLE, "`itemGuid`, `char_guid`, `xp`, `artifactAppearanceId`, `itemEntry`, `tier`, `totalrank`"},
-    { "item_instance_artifact_powers",    DTT_ARTI_TABLE, "`itemGuid`, `char_guid`, `artifactPowerId`, `purchasedRank`, `itemEntry`"},
+    //{ "item_instance_artifact",           DTT_ARTI_TABLE, "`itemGuid`, `xp`, `artifactAppearanceId`, `itemEntry`, `tier`, `char_guid`, `totalrank`"},
+    //{ "item_instance_artifact_powers",    DTT_ARTI_TABLE, "`itemGuid`, `char_guid`, `artifactPowerId`, `purchasedRank`, `itemEntry`"},
     { "item_instance_gems",               DTT_ITEM_TABLE, "`itemGuid`, `gemItemId1`, `gemBonuses1`, `gemContext1`, `gemScalingLevel1`, `gemItemId2`, `gemBonuses2`, `gemScalingLevel2`, `gemContext2`, `gemItemId3`, `gemBonuses3`, `gemContext3`, `gemScalingLevel3`"},
     { "item_instance_modifiers",          DTT_ITEM_TABLE, "`itemGuid`, `fixedScalingLevel`, `artifactKnowledgeLevel`"},
     { "item_instance_transmog",           DTT_ITEM_TABLE, "`itemGuid`, `itemModifiedAppearanceAllSpecs`, `itemModifiedAppearanceSpec1`, `itemModifiedAppearanceSpec2`, `itemModifiedAppearanceSpec3`, `itemModifiedAppearanceSpec4`, `spellItemEnchantmentAllSpecs`, `spellItemEnchantmentSpec1`, `spellItemEnchantmentSpec2`, `spellItemEnchantmentSpec3`, `spellItemEnchantmentSpec4`"}
@@ -202,7 +207,7 @@ std::string CreateDumpString(char const* tableName, QueryResult result, char con
 {
     if (!tableName || !result) return "";
     std::ostringstream ss;
-    ss << "INSERT INTO "<< _TABLE_SIM_ << tableName << _TABLE_SIM_ << " (" << tableSelect << ") VALUES (";
+    ss << "INSERT INTO `" << tableName << "` (" << tableSelect << ") VALUES (";
     Field* fields = result->Fetch();
     for (uint32 i = 0; i < result->GetFieldCount(); ++i)
     {
@@ -215,7 +220,7 @@ std::string CreateDumpString(char const* tableName, QueryResult result, char con
 
         ss << '\'';
     }
-    ss << ");";
+    ss << ");\n";
     return ss.str();
 }
 
@@ -411,7 +416,7 @@ DumpReturn PlayerDumpReader::LoadDump(std::string const& file, uint32 account, s
     bool incHighest = true;
     if (guid != 0 && guid < sObjectMgr->GetGenerator<HighGuid::Player>()->GetNextAfterMaxUsed())
     {
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_GUID);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_GUID);
         stmt->setUInt32(0, guid);
         PreparedQueryResult result = CharacterDatabase.Query(stmt);
         if (result)
@@ -427,7 +432,7 @@ DumpReturn PlayerDumpReader::LoadDump(std::string const& file, uint32 account, s
 
     if (sCharacterDataStore->CheckPlayerName(name, sWorld->GetDefaultDbcLocale(), true) == CHAR_NAME_SUCCESS)
     {
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_NAME);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_NAME);
         stmt->setString(0, name);
         PreparedQueryResult result = CharacterDatabase.Query(stmt);
 
@@ -458,7 +463,7 @@ DumpReturn PlayerDumpReader::LoadDump(std::string const& file, uint32 account, s
     uint8 playerClass = 0;
     uint8 level = 0;
 
-    SQLTransaction trans = CharacterDatabase.BeginTransaction();
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
     while (!feof(fin))
     {
         if (!fgets(buf, 32000, fin))
@@ -485,7 +490,7 @@ DumpReturn PlayerDumpReader::LoadDump(std::string const& file, uint32 account, s
         std::string tn = GetTableName(line);
         if (tn.empty())
         {
-            TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: Can't extract table name from line: '%s'!", line.c_str());
+            TC_LOG_ERROR("network", "LoadPlayerDump: Can't extract table name from line: '%s'!", line.c_str());
             ROLLBACK(DUMP_FILE_BROKEN);
         }
 
@@ -502,7 +507,7 @@ DumpReturn PlayerDumpReader::LoadDump(std::string const& file, uint32 account, s
 
         if (i == DUMP_TABLE_COUNT)
         {
-            TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: Unknown table: '%s'!", tn.c_str());
+            TC_LOG_ERROR("network", "LoadPlayerDump: Unknown table: '%s'!", tn.c_str());
             ROLLBACK(DUMP_FILE_BROKEN);
         }
 
@@ -526,7 +531,7 @@ DumpReturn PlayerDumpReader::LoadDump(std::string const& file, uint32 account, s
                     // check if the original name already exists
                     name = GetNth(line, 3);
 
-                    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_NAME);
+                    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_NAME);
                     stmt->setString(0, name);
                     PreparedQueryResult result = CharacterDatabase.Query(stmt);
 
@@ -669,18 +674,18 @@ DumpReturn PlayerDumpReader::LoadDump(std::string const& file, uint32 account, s
             {
                 if (!ChangeNth(line, 2, newguid))           // character_*.guid update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_garrison_followers.guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_garrison_followers.guid line: '%s'!", line.c_str());
                     ROLLBACK(DUMP_FILE_BROKEN);
                 }
                 if (!ChangeNth(line, 1, lastfollowerid))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_garrison_followers.dbId update line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_garrison_followers.dbId update line: '%s'!", line.c_str());
                     ROLLBACK(DUMP_FILE_BROKEN);
                 }
                 break;
             }
             default:
-                TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "Unknown dump table type: %u", type);
+                TC_LOG_ERROR("network", "Unknown dump table type: %u", type);
                 break;
         }
 
@@ -717,7 +722,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
     bool incHighest = true;
     if (guid != 0 && guid < sObjectMgr->GetGenerator<HighGuid::Player>()->GetNextAfterMaxUsed())
     {
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_GUID);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_GUID);
         stmt->setUInt32(0, guid);
         PreparedQueryResult result = CharacterDatabase.Query(stmt);
         if (result)
@@ -733,7 +738,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
 
     if (sCharacterDataStore->CheckPlayerName(name, sWorld->GetDefaultDbcLocale(), true) == CHAR_NAME_SUCCESS)
     {
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_NAME);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_NAME);
         stmt->setString(0, name);
         PreparedQueryResult result = CharacterDatabase.Query(stmt);
         if (result)
@@ -763,8 +768,8 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
     uint8 level = 0;
     uint64 money = 0;
 
-    SQLTransaction trans = CharacterDatabase.BeginTransaction();
-    SQLTransaction loginTrans = LoginDatabase.BeginTransaction();
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+    LoginDatabaseTransaction loginTrans = LoginDatabase.BeginTransaction();
 
     dump += "INSERT INTO";
     std::string insertString(";INSERT INTO");
@@ -785,7 +790,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
         std::string tn = GetTableName(line);
         if (tn.empty())
         {
-            TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: Can't extract table name from line: '%s'!", line.c_str());
+            TC_LOG_ERROR("network", "LoadPlayerDump: Can't extract table name from line: '%s'!", line.c_str());
             return DUMP_FILE_BROKEN;
         }
 
@@ -802,7 +807,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
 
         if (i == DUMP_TABLE_COUNT)
         {
-            TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: Unknown table: '%s'!", tn.c_str());
+            TC_LOG_ERROR("network", "LoadPlayerDump: Unknown table: '%s'!", tn.c_str());
             continue;
         }
 
@@ -813,13 +818,13 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeNth(line, 1, newguid))           // characters.guid update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: characters.guid update line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: characters.guid update line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
 
                 if (!ChangeNth(line, 2, chraccount))        // characters.account update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: characters.account update line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: characters.account update line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
 
@@ -839,20 +844,20 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
                     // check if the original name already exists
                     name = GetNth(line, 3);
 
-                    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_NAME);
+                    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHECK_NAME);
                     stmt->setString(0, name);
                     PreparedQueryResult result = CharacterDatabase.Query(stmt);
 
                     if (result)
                         if (!ChangeNth(line, 48, "1"))       // characters.at_login set to "rename on login"
                         {
-                            TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: characters.at_login set to rename on login line: '%s'!", line.c_str());
+                            TC_LOG_ERROR("network", "LoadPlayerDump: characters.at_login set to rename on login line: '%s'!", line.c_str());
                             return DUMP_FILE_BROKEN;
                         }
                 }
                 else if (!ChangeNth(line, 3, name.c_str())) // characters.name
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: characters.name line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: characters.name line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -861,21 +866,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeNth(line, 1, newguid))           // character_*.guid update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_.guid line: '%s'!", line.c_str());
-                    return DUMP_FILE_BROKEN;
-                }
-                break;
-            }
-            case DTT_QUEST_TABLE:
-            {
-                if (!ChangeNth(line, 1, newguid))           // character_*.guid update
-                {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_queststatus.guid line: '%s'!", line.c_str());
-                    return DUMP_FILE_BROKEN;
-                }
-                if (!ChangeNth(line, 2, chraccount))
-                {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_queststatus.account update line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_.guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -884,7 +875,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeNth(line, 1, newguid))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_equipmentsets.guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_equipmentsets.guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
 
@@ -892,7 +883,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
                 snprintf(newSetGuid, 24, UI64FMTD, sObjectMgr->GenerateEquipmentSetGuid());
                 if (!ChangeNth(line, 2, newSetGuid))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_equipmentsets.setguid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_equipmentsets.setguid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -901,18 +892,18 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeNth(line, 1, newguid))           // character_inventory.guid update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_inventory.guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_inventory.guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
 
                 if (!ChangeGuid(line, 2, items, sObjectMgr->GetGenerator<HighGuid::Item>()->GetNextAfterMaxUsed(), true))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_inventory.bag line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_inventory.bag line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeGuid(line, 4, items, sObjectMgr->GetGenerator<HighGuid::Item>()->GetNextAfterMaxUsed()))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_inventory.item line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_inventory.item line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -925,17 +916,17 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
 
                 if (!ChangeNth(line, 1, newItemId))           // character_void_storage.itemId update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_void_storage.itemId line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_void_storage.itemId line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeNth(line, 2, newguid))           // character_void_storage.playerGuid update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_void_storage.playerGuid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_void_storage.playerGuid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }            // character_void_storage.itemGuid update
                 if (!ChangeGuid(line, 9, items, sObjectMgr->GetGenerator<HighGuid::Item>()->GetNextAfterMaxUsed()))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_void_storage.itemGuid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_void_storage.itemGuid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -944,12 +935,12 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeGuid(line, 1, mails, sObjectMgr->_mailId))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: mail.id line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: mail.id line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeNth(line, 6, newguid))           // mail.receiver update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: mail.receiver line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: mail.receiver line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -958,17 +949,17 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeGuid(line, 1, mails, sObjectMgr->_mailId))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: mail_items.id line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: mail_items.id line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeGuid(line, 2, items, sObjectMgr->GetGenerator<HighGuid::Item>()->GetNextAfterMaxUsed()))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: mail_items.item_guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: mail_items.item_guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeNth(line, 3, newguid))           // mail_items.receiver
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: mail_items.receiver line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: mail_items.receiver line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -978,12 +969,12 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
                 // item, owner, data field:item, owner guid
                 if (!ChangeGuid(line, 1, items, sObjectMgr->GetGenerator<HighGuid::Item>()->GetNextAfterMaxUsed()))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: item_instance.guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: item_instance.guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeNth(line, 3, newguid))           // item_instance.owner_guid update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: item_instance.owner_guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: item_instance.owner_guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -992,12 +983,12 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeNth(line, 1, newguid))           // character_gifts.guid update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_gifts.guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_gifts.guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeGuid(line, 2, items, sObjectMgr->GetGenerator<HighGuid::Item>()->GetNextAfterMaxUsed()))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_gifts.item_guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_gifts.item_guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -1006,12 +997,12 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeNth(line, 1, newguid))           // character_donate.owner_guid update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_donate.owner_guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_donate.owner_guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeGuid(line, 2, items, sObjectMgr->GetGenerator<HighGuid::Item>()->GetNextAfterMaxUsed()))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_donate.itemguid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_donate.itemguid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -1037,12 +1028,12 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
 
                 if (!ChangeNth(line, 1, newpetid))          // character_pet.id update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_pet.id line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_pet.id line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeNth(line, 3, newguid))           // character_pet.owner update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_pet.owne line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_pet.owne line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
 
@@ -1056,7 +1047,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
                 std::map<uint32, uint32> :: const_iterator petids_iter = petids.find(atoi(currpetid));
                 if (petids_iter == petids.end())             // couldn't find new inserted id
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: pet line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: pet line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
 
@@ -1064,7 +1055,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
 
                 if (!ChangeNth(line, 1, newpetid))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: pet line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: pet line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -1073,26 +1064,12 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeNth(line, 2, newguid))           // character_*.guid update
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_garrison_followers.guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_garrison_followers.guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeNth(line, 1, lastfollowerid))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_garrison_followers.dbId update line: '%s'!", line.c_str());
-                    return DUMP_FILE_BROKEN;
-                }
-                break;
-            }
-            case DTT_LOGIN:
-            {
-                if (!ChangeNth(line, 4, newguid))
-                {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: store_history.char_guid line: '%s'!", line.c_str());
-                    return DUMP_FILE_BROKEN;
-                }
-                if (!ChangeGuid(line, 7, items, sObjectMgr->GetGenerator<HighGuid::Item>()->GetNextAfterMaxUsed()))
-                {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: store_history.item_guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_garrison_followers.dbId update line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -1101,7 +1078,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeGuid(line, 1, items, sObjectMgr->GetGenerator<HighGuid::Item>()->GetNextAfterMaxUsed()))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: item_instance_*.guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: item_instance_*.guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -1111,12 +1088,12 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
                 // item, owner, data field:item, owner guid
                 if (!ChangeGuid(line, 1, items, sObjectMgr->GetGenerator<HighGuid::Item>()->GetNextAfterMaxUsed()))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: item_instance_artifact.itemGuid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: item_instance_artifact.itemGuid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 if (!ChangeNth(line, 2, newguid))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: item_instance_artifact.char_guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: item_instance_artifact.char_guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
@@ -1125,7 +1102,7 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
             {
                 if (!ChangeNth(line, 1, newguid))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_transmog_outfits.guid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_transmog_outfits.guid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
 
@@ -1133,22 +1110,19 @@ DumpReturn PlayerDumpReader::LoadDump(uint32 account, std::string& dump, std::st
                 snprintf(newSetGuid, 24, UI64FMTD, sObjectMgr->GenerateEquipmentSetGuid());
                 if (!ChangeNth(line, 2, newSetGuid))
                 {
-                    TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "LoadPlayerDump: character_transmog_outfits.setguid line: '%s'!", line.c_str());
+                    TC_LOG_ERROR("network", "LoadPlayerDump: character_transmog_outfits.setguid line: '%s'!", line.c_str());
                     return DUMP_FILE_BROKEN;
                 }
                 break;
             }
             default:
-                TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "Unknown dump table type: %u", type);
+                TC_LOG_ERROR("network", "Unknown dump table type: %u", type);
                 break;
         }
 
         fixNULLfields(line);
 
-        if (type == DTT_LOGIN)
-            loginTrans->Append(line.c_str());
-        else
-            trans->Append(line.c_str());
+        trans->Append(line.c_str());
     }
 
     CharacterDatabase.CommitTransaction(trans);

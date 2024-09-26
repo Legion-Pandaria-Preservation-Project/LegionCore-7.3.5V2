@@ -1,5 +1,4 @@
 /*
- * Copyright (C)   2013    uWoW <http://uwow.biz>
  * Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
@@ -106,10 +105,10 @@ int GetMatchmakerRatingMod(int ownRating, int opponentRating, bool won )
     return static_cast<int>(RoundingFloatValue(mod));
 }
 
-void Bracket::SaveStats(SQLTransaction* trans)
+void Bracket::SaveStats(CharacterDatabaseTransaction* trans)
 {
     int32 index = 0;
-    PreparedStatement* stmt;
+    CharacterDatabasePreparedStatement* stmt;
 
     switch (m_state)
     {

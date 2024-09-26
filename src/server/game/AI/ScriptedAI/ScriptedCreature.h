@@ -187,6 +187,9 @@ struct ScriptedAI : public CreatureAI
     //Start no movement on victim
     void DoStartNoMovement(Unit* target);
 
+    //Stop attack of current victim
+    void DoStopAttack();
+
     //Cast spell by spell info
     void DoCastSpell(Unit* target, SpellInfo const* spellInfo, bool triggered = false);
 

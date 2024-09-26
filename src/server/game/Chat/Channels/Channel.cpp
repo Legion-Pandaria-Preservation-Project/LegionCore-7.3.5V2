@@ -69,7 +69,7 @@ Channel::Channel(std::string const& name, uint32 channel_id, uint32 Team) : _cha
         // If storing custom channels in the db is enabled either load or save the channel
         if (sWorld->getBoolConfig(CONFIG_PRESERVE_CUSTOM_CHANNELS))
         {
-            PreparedStatement *stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHANNEL);
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHANNEL);
             stmt->setString(0, name);
             stmt->setUInt32(1, m_Team);
             PreparedQueryResult result = CharacterDatabase.Query(stmt);
@@ -93,7 +93,7 @@ Channel::Channel(std::string const& name, uint32 channel_id, uint32 Team) : _cha
 
                         if (!banned_guid.IsEmpty())
                         {
-                            TC_LOG_DEBUG(LOG_FILTER_CHATSYS, "Channel(%s) loaded _bannedStore guid: %s", name.c_str(), banned_guid.ToString().c_str());
+                            TC_LOG_DEBUG("chat.system", "Channel(%s) loaded _bannedStore guid: %s", name.c_str(), banned_guid.ToString().c_str());
                             _bannedStore.insert(banned_guid);
                         }
                     }
@@ -105,7 +105,7 @@ Channel::Channel(std::string const& name, uint32 channel_id, uint32 Team) : _cha
                 stmt->setString(0, name);
                 stmt->setUInt32(1, m_Team);
                 CharacterDatabase.Execute(stmt);
-                TC_LOG_DEBUG(LOG_FILTER_CHATSYS, "Channel(%s) saved in database", name.c_str());
+                TC_LOG_DEBUG("chat.system", "Channel(%s) saved in database", name.c_str());
             }
 
             _isSaved = true;
@@ -192,7 +192,7 @@ void Channel::UpdateChannelInDB() const
 
         std::string banListStr = banlist.str();
 
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHANNEL);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHANNEL);
         stmt->setBool(0, _announceEnabled);
         stmt->setBool(1, _ownershipEnabled);
         stmt->setString(2, _channelPassword);
@@ -201,13 +201,13 @@ void Channel::UpdateChannelInDB() const
         stmt->setUInt32(5, m_Team);
         CharacterDatabase.Execute(stmt);
 
-        TC_LOG_DEBUG(LOG_FILTER_CHATSYS, "Channel(%s) updated in database", _channelName.c_str());
+        TC_LOG_DEBUG("chat.system", "Channel(%s) updated in database", _channelName.c_str());
     }
 }
 
 void Channel::UpdateChannelUseageInDB() const
 {
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHANNEL_USAGE);
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHANNEL_USAGE);
     stmt->setString(0, _channelName);
     stmt->setUInt32(1, m_Team);
     CharacterDatabase.Execute(stmt);
@@ -226,11 +226,11 @@ void Channel::CleanOldChannelsInDB()
 {
     if (sWorld->getIntConfig(CONFIG_PRESERVE_CUSTOM_CHANNEL_DURATION) > 0)
     {
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_OLD_CHANNELS);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_OLD_CHANNELS);
         stmt->setUInt32(0, sWorld->getIntConfig(CONFIG_PRESERVE_CUSTOM_CHANNEL_DURATION) * DAY);
         CharacterDatabase.Execute(stmt);
 
-        TC_LOG_DEBUG(LOG_FILTER_CHATSYS, "Cleaned out unused custom chat channels.");
+        TC_LOG_DEBUG("chat.system", "Cleaned out unused custom chat channels.");
     }
 }
 
@@ -300,17 +300,6 @@ void Channel::JoinChannel(Player* player, std::string const& pass, bool /*client
 
     SendToOne(builder, guid);
 
-    //JoinNotify(guid);
-	if (sWorld->getBoolConfig(CONFIG_AUTO_SAY_HELLO))
-	{
-		if (IsConstant() && !IsWorld())
-		{
-			std::string text("Hello everyone!");
-			WorldPackets::Chat::Chat packet;
-			packet.Initialize(CHAT_MSG_CHANNEL, LANG_UNIVERSAL, player, player, text, 0, _channelName);
-			player->SendDirectMessage(packet.Write());
-		}
-	}
     
     if (!IsConstant()) // Custom channel handling
     {

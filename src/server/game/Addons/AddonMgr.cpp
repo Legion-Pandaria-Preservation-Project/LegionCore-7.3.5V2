@@ -41,7 +41,7 @@ void LoadFromDB()
     QueryResult result = CharacterDatabase.Query("SELECT name, crc FROM addons");
     if (!result)
     {
-        TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded 0 known addons. DB table `addons` is empty!");
+        TC_LOG_INFO("server.loading", ">> Loaded 0 known addons. DB table `addons` is empty!");
 
         return;
     }
@@ -61,7 +61,7 @@ void LoadFromDB()
     }
     while (result->NextRow());
 
-    TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded %u known addons in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
+    TC_LOG_INFO("server.loading", ">> Loaded %u known addons in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
 
 }
 
@@ -69,7 +69,7 @@ void SaveAddon(AddonInfo const& addon)
 {
     std::string name = addon.Name;
 
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_ADDON);
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_ADDON);
 
     stmt->setString(0, name);
     stmt->setUInt32(1, addon.CRC);

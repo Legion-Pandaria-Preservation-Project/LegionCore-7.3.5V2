@@ -15,6 +15,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* ScriptData
+Name: account_commandscript
+%Complete: 100
+Comment: All account related commands
+Category: commandscripts
+EndScriptData */
+
 #include "AccountMgr.h"
 #include "Chat.h"
 #include "DatabaseEnv.h"
@@ -77,7 +84,7 @@ public:
             return false;
         }
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_EXPANSION);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_EXPANSION);
 
         stmt->setUInt8(0, uint8(expansion));
         stmt->setUInt32(1, accountId);
@@ -100,6 +107,13 @@ public:
         if (!accountName || !password)
             return false;
 
+        if (!strchr(accountName, '@'))
+        {
+            handler->SendSysMessage(LANG_ACCOUNT_INVALID_BNET_NAME);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
         AccountOpResult result = AccountMgr::CreateAccount(std::string(accountName), std::string(password));
         switch (result)
         {
@@ -107,7 +121,7 @@ public:
                 handler->PSendSysMessage(LANG_ACCOUNT_CREATED, accountName);
                 if (handler->GetSession())
                 {
-                    TC_LOG_INFO(LOG_FILTER_CHARACTER, "Account: %d (IP: %s) Character:[%s] (GUID: %u) Change Password."
+                    TC_LOG_INFO("entities.player.character", "Account: %d (IP: %s) Character:[%s] (GUID: %u) Change Password."
                         , handler->GetSession()->GetAccountId(),handler->GetSession()->GetRemoteAddress().c_str()
                         , handler->GetSession()->GetPlayer()->GetName(), handler->GetSession()->GetPlayer()->GetGUID().GetGUIDLow());
                 }
@@ -122,6 +136,10 @@ public:
                 return false;
             case AccountOpResult::AOR_DB_INTERNAL_ERROR:
                 handler->PSendSysMessage(LANG_ACCOUNT_NOT_CREATED_SQL_ERROR, accountName);
+                handler->SetSentErrorMessage(true);
+                return false;
+            case AccountOpResult::AOR_PASS_TOO_LONG:
+                handler->SendSysMessage(LANG_PASSWORD_TOO_LONG);
                 handler->SetSentErrorMessage(true);
                 return false;
             default:
@@ -194,7 +212,7 @@ public:
     static bool HandleAccountOnlineListCommand(ChatHandler* handler, char const* /*args*/)
     {
         ///- Get the list of accounts ID logged to the realm
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_ONLINE);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_ONLINE);
 
         PreparedQueryResult result = CharacterDatabase.Query(stmt);
 
@@ -218,9 +236,9 @@ public:
 
             ///- Get the username, last IP and GM level of each account
             // No SQL injection. account is uint32.
-            stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_INFO);
-            stmt->setUInt32(0, account);
-            PreparedQueryResult resultLogin = LoginDatabase.Query(stmt);
+            LoginDatabasePreparedStatement* stmt2 = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_INFO);
+            stmt2->setUInt32(0, account);
+            PreparedQueryResult resultLogin = LoginDatabase.Query(stmt2);
 
             if (resultLogin)
             {
@@ -252,7 +270,7 @@ public:
 
         if (!param.empty())
         {
-            PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_ACCOUNT_LOCK);
+            LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_ACCOUNT_LOCK);
 
             if (param == "on")
             {
@@ -285,10 +303,12 @@ public:
             return false;
         }
 
-        char* oldPassword = strtok((char*)args, " ");
-        char* newPassword = strtok(NULL, " ");
-        char* passwordConfirmation = strtok(NULL, " ");
+        // Command is supposed to be: .account password [$oldpassword] [$newpassword] [$newpasswordconfirmation]
+        char* oldPassword = strtok((char*)args, " ");       // This extracts [$oldpassword]
+        char* newPassword = strtok(NULL, " ");              // This extracts [$newpassword]
+        char* passwordConfirmation = strtok(NULL, " ");     // This extracts [$newpasswordconfirmation]
 
+        //Is any of those variables missing for any reason ? We return false.
         if (!oldPassword || !newPassword || !passwordConfirmation)
         {
             handler->SendSysMessage(LANG_CMD_SYNTAX);
@@ -296,6 +316,7 @@ public:
             return false;
         }
 
+        // We compare the old, saved password to the entered old password - no chance for the unauthorized.
         if (!AccountMgr::CheckPassword(handler->GetSession()->GetAccountId(), std::string(oldPassword)))
         {
             handler->SendSysMessage(LANG_COMMAND_WRONGOLDPASSWORD);
@@ -303,6 +324,7 @@ public:
             return false;
         }
 
+        // Making sure that newly entered password is correctly entered.
         if (strcmp(newPassword, passwordConfirmation) != 0)
         {
             handler->SendSysMessage(LANG_NEW_PASSWORDS_NOT_MATCH);
@@ -310,6 +332,7 @@ public:
             return false;
         }
 
+        // Changes password and prints result.
         AccountOpResult result = AccountMgr::ChangePassword(handler->GetSession()->GetAccountId(), std::string(newPassword));
         switch (result)
         {
@@ -389,7 +412,7 @@ public:
         if (expansion < 0 || uint8(expansion) > CURRENT_EXPANSION)
             return false;
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_EXPANSION);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_EXPANSION);
 
         stmt->setUInt8(0, expansion);
         stmt->setUInt32(1, accountId);
@@ -468,7 +491,7 @@ public:
         // Check and abort if the target gm has a higher rank on one of the realms and the new realm is -1
         if (gmRealmID == -1 && !AccountMgr::IsConsoleAccount(playerSecurity))
         {
-            PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_ACCESS_GMLEVEL_TEST);
+            LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_ACCESS_GMLEVEL_TEST);
 
             stmt->setUInt32(0, targetAccountId);
             stmt->setUInt8(1, uint8(gm));
@@ -495,13 +518,13 @@ public:
 
         if (gmRealmID == -1)
         {
-            PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_ACCOUNT_ACCESS);
+            LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_ACCOUNT_ACCESS);
             stmt->setUInt32(0, targetAccountId);
             LoginDatabase.Execute(stmt);
         }
         else
         {
-            PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_ACCOUNT_ACCESS_BY_REALM);
+            LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_ACCOUNT_ACCESS_BY_REALM);
             stmt->setUInt32(0, targetAccountId);
             stmt->setUInt32(1, realm.Id.Realm);
             LoginDatabase.Execute(stmt);
@@ -509,7 +532,7 @@ public:
 
         if (gm != 0)
         {
-            PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT_ACCESS);
+            LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT_ACCESS);
 
             stmt->setUInt32(0, targetAccountId);
             stmt->setUInt8(1, uint8(gm));
@@ -527,7 +550,11 @@ public:
     static bool HandleAccountSetPasswordCommand(ChatHandler* handler, char const* args)
     {
         if (!*args)
+        {
+            handler->SendSysMessage(LANG_CMD_SYNTAX);
+            handler->SetSentErrorMessage(true);
             return false;
+        }
 
         ///- Get the command line arguments
         char* account = strtok((char*)args, " ");

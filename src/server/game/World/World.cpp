@@ -4225,7 +4225,7 @@ void World::setWorldState(uint32 index, uint32 value)
     WorldStatesMap::const_iterator it = m_worldstates.find(index);
     if (it != m_worldstates.end())
     {
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_WORLDSTATE);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_WORLDSTATE);
 
         stmt->setUInt32(0, uint32(value));
         stmt->setUInt32(1, index);
@@ -4234,7 +4234,7 @@ void World::setWorldState(uint32 index, uint32 value)
     }
     else
     {
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WORLDSTATE);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WORLDSTATE);
 
         stmt->setUInt32(0, index);
         stmt->setUInt32(1, uint32(value));
@@ -4441,7 +4441,7 @@ void World::DeleteCharName(std::string name)
 void World::ProcessMailboxQueue()
 {
     //QueryResult result = CharacterDatabase.Query("SELECT id FROM mailbox_queue LIMIT 10000");
-    PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_MAILBOX_QUEUE);
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_MAILBOX_QUEUE);
     PreparedQueryResult result = CharacterDatabase.Query(stmt);
 
     if(result)
@@ -4506,7 +4506,7 @@ void World::ProcessMailboxQueue()
                     }
                 }
                 
-                SQLTransaction trans = CharacterDatabase.BeginTransaction();
+                CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
                 uint32 tempcountitems = countitems;
                 while (countitems && itemid)
                 {
@@ -4579,7 +4579,7 @@ void World::ProcessMailboxQueue()
                 CharacterDatabase.EscapeString(body);
                 // trans->PAppend("REPLACE INTO mail (id,messageType,stationery,mailTemplateId,sender,receiver,subject,body,has_items,expire_time,deliver_time,money,cod,checked) VALUES ('%u', '%u', '%u', '%u', '%u', '%u', '%s', '%s', '%u', '" UI64FMTD "','" UI64FMTD "', '%u', '%u', '%d')",
                 //  mailId, messageType, stationery, 0, sender_guid, receiver_guid.GetGUIDLow(), subject.c_str(), body.c_str(), (attachment != nullptr ? 1 : 0), (uint64)expire_time, (uint64)deliver_time, money, 0, 0);
-                PreparedStatement* stmtt = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL);
+                 CharacterDatabasePreparedStatement* stmtt = CharacterDatabase.GetPreparedStatement(CHAR_INS_MAIL);
                 uint8 index = 0;
                 stmtt->setUInt32(index++, mailId);
                 stmtt->setUInt8 (index++, uint8(messageType));
@@ -4734,7 +4734,7 @@ void World::Transfer()
             if (dumpState == DUMP_SUCCESS)
             {
                 CharacterDatabase.PExecute("UPDATE `characters` SET `at_login` = '512', `deleteInfos_Name` = `name`, `deleteInfos_Account` = `account`, `deleteDate` ='" UI64FMTD "', `name` = '', `account` = 0, `transfer` = '%u' WHERE `guid` = '" UI64FMTD "'", uint64(time(nullptr)), to, guid);
-                PreparedStatement * stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_DUMP);
+               LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_DUMP);
                 if(stmt)
                 {
                     stmt->setString(0, dump);
@@ -4778,7 +4778,7 @@ void World::Transfer()
             if (dumpState == DUMP_SUCCESS)
             {
                 LoginDatabase.PQuery("DELETE FROM `transferts` WHERE `id` = %u", transaction);
-                PreparedStatement * stmt = LoginDatabase.GetPreparedStatement(LOGIN_ADD_TRANSFERTS_LOGS);
+                LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_ADD_TRANSFERTS_LOGS);
                 if(stmt)
                 {
                     stmt->setUInt32(0, transaction);

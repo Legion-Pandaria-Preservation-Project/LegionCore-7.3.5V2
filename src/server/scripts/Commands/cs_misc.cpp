@@ -26,7 +26,7 @@
 #include "Guild.h"
 #include "GuildMgr.h"
 #include "InstanceSaveMgr.h"
-#include "InstanceScript.h"
+#include "IpAddress.h"
 #include "MovementGenerator.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
@@ -36,7 +36,6 @@
 #include "SpellAuraEffects.h"
 #include "SpellAuras.h"
 #include "TargetedMovementGenerator.h"
-#include "WeatherMgr.h"
 #include "WordFilterMgr.h"
 #include <fstream>
 #include <boost/locale/encoding_utf.hpp>
@@ -424,13 +423,6 @@ public:
         if (status)
             handler->PSendSysMessage(LANG_LIQUID_STATUS, liquidStatus.level, liquidStatus.depth_level, liquidStatus.entry, liquidStatus.type_flags, status);
 
-        if (!object->GetPhases().empty())
-        {
-            std::stringstream ss;
-            for (uint32 swap : object->GetPhases())
-                ss << swap << " ";
-            handler->PSendSysMessage("Target's active phase swaps: %s", ss.str().c_str());
-        }
         if (!object->GetTerrainSwaps().empty())
         {
             std::stringstream ss;
@@ -972,10 +964,7 @@ public:
 
         if (target->isAlive())
         {
-            if (sWorld->getBoolConfig(CONFIG_DIE_COMMAND_MODE))
-                handler->GetSession()->GetPlayer()->Kill(target);
-            else
-                handler->GetSession()->GetPlayer()->DealDamage(target, target->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+            handler->GetSession()->GetPlayer()->DealDamage(target, target->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
         }
 
         return true;
@@ -1511,7 +1500,7 @@ public:
                 std::string itemName = itemNameStr+1;
                 WorldDatabase.EscapeString(itemName);
 
-                PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_ITEM_TEMPLATE_BY_NAME);
+                WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_ITEM_TEMPLATE_BY_NAME);
                 stmt->setString(0, itemName);
                 PreparedQueryResult result = WorldDatabase.Query(stmt);
 
@@ -1551,7 +1540,7 @@ public:
         if (!playerTarget)
             playerTarget = player;
 
-        TC_LOG_DEBUG(LOG_FILTER_GENERAL, handler->GetTrinityString(LANG_ADDITEM), itemId, count);
+        TC_LOG_DEBUG("misc", handler->GetTrinityString(LANG_ADDITEM), itemId, count);
 
         ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(itemId);
         if (!itemTemplate)
@@ -1709,7 +1698,7 @@ public:
         if (!playerTarget)
             playerTarget = player;
 
-        TC_LOG_DEBUG(LOG_FILTER_GENERAL, handler->GetTrinityString(LANG_ADDITEMSET), itemSetId);
+        TC_LOG_DEBUG("misc", handler->GetTrinityString(LANG_ADDITEMSET), itemSetId);
 
         bool found = false;
         ItemTemplateContainer const* its = sObjectMgr->GetItemTemplateStore();
@@ -1886,7 +1875,6 @@ public:
             return false;
 
         uint32 accId            = 0;
-        uint32 bnetaccId        = 0;
         uint32 money            = 0;
         uint32 totalPlayerTime  = 0;
         uint32 totalAccountTime = 0;
@@ -1909,7 +1897,6 @@ public:
                 return false;
 
             accId             = target->GetSession()->GetAccountId();
-            bnetaccId         = target->GetSession()->GetBattlenetAccountId();
             money             = target->GetMoney();
             totalPlayerTime   = target->GetTotalPlayedTime();
             level             = target->getLevel();
@@ -1930,7 +1917,7 @@ public:
             if (handler->HasLowerSecurity(NULL, targetGuid))
                 return false;
 
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_PINFO);
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_PINFO);
             stmt->setUInt64(0, targetGuid.GetGUIDLow());
             PreparedQueryResult result = CharacterDatabase.Query(stmt);
 
@@ -1954,7 +1941,7 @@ public:
         std::string lastIp      = handler->GetTrinityString(LANG_ERROR);
         uint32 security         = 0;
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_PINFO);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_PINFO);
         stmt->setInt32(0, int32(realm.Id.Realm));
         stmt->setUInt32(1, accId);
         PreparedQueryResult result = LoginDatabase.Query(stmt);
@@ -1966,7 +1953,6 @@ public:
             security      = fields[1].GetUInt8();
             eMail         = fields[2].GetString();
             muteTime      = fields[5].GetUInt64();
-            bnetaccId     = fields[6].GetUInt32();
 
             if (handler->GetSession()->GetSecurity() <= 3)
                 eMail = "IT`S SECRET!";
@@ -1976,12 +1962,12 @@ public:
                 lastIp = fields[3].GetString();
                 // lastLogin = fields[4].GetString();
 
-                uint32 ip = inet_addr(lastIp.c_str());
+                uint32 ip = Trinity::Net::address_to_uint(Trinity::Net::make_address_v4(lastIp));
 #if TRINITY_ENDIAN == BIGENDIAN
                 EndianConvertReverse(ip);
 #endif
 
-                PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_IP2NATION_COUNTRY);
+                WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_IP2NATION_COUNTRY);
 
                 stmt->setUInt32(0, ip);
 
@@ -2005,7 +1991,7 @@ public:
 
         std::string nameLink = handler->playerLink(targetName);
 
-        handler->PSendSysMessage(LANG_PINFO_ACCOUNT, (target ? "" : handler->GetTrinityString(LANG_OFFLINE)), nameLink.c_str(), targetGuid.GetGUIDLow(), userName.c_str(), accId, bnetaccId, eMail.c_str(), security, lastIp.c_str(), lastLogin.c_str(), latency);
+        handler->PSendSysMessage(LANG_PINFO_ACCOUNT, (target ? "" : handler->GetTrinityString(LANG_OFFLINE)), nameLink.c_str(), targetGuid.GetGUIDLow(), userName.c_str(), accId, accId, eMail.c_str(), security, lastIp.c_str(), lastLogin.c_str(), latency);
 
         std::string bannedby = "unknown";
         std::string banreason = "";
@@ -2015,9 +2001,9 @@ public:
         PreparedQueryResult result2 = LoginDatabase.Query(stmt);
         if (!result2)
         {
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PINFO_BANS);
-            stmt->setUInt64(0, targetGuid.GetGUIDLow());
-            result2 = CharacterDatabase.Query(stmt);
+            CharacterDatabasePreparedStatement* stmt2 = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PINFO_BANS);
+            stmt2->setUInt64(0, targetGuid.GetGUIDLow());
+            result2 = CharacterDatabase.Query(stmt2);
         }
 
         if (result2)
@@ -2340,7 +2326,7 @@ public:
             target->GetSession()->m_muteTime = 0;
         }
 
-        PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_MUTE_TIME);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_MUTE_TIME);
         stmt->setInt64(0, 0);
         stmt->setUInt32(1, accountId);
         LoginDatabase.Execute(stmt);
@@ -2674,7 +2660,7 @@ public:
         MailSender sender(MAIL_NORMAL, handler->GetSession() ? handler->GetSession()->GetPlayer()->GetGUID().GetGUIDLow() : 0, MAIL_STATIONERY_GM);
 
         //- TODO: Fix poor design
-        SQLTransaction trans = CharacterDatabase.BeginTransaction();
+        CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
         MailDraft(subject, text)
             .SendMailTo(trans, MailReceiver(target, targetGuid.GetGUIDLow()), sender);
 
@@ -2774,7 +2760,7 @@ public:
         // fill mail
         MailDraft draft(subject, text);
 
-        SQLTransaction trans = CharacterDatabase.BeginTransaction();
+        CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
 
         for (ItemPairs::const_iterator itr = items.begin(); itr != items.end(); ++itr)
         {
@@ -2831,7 +2817,7 @@ public:
         // from console show not existed sender
         MailSender sender(MAIL_NORMAL, handler->GetSession() ? handler->GetSession()->GetPlayer()->GetGUID().GetGUIDLow() : 0, MAIL_STATIONERY_GM);
 
-        SQLTransaction trans = CharacterDatabase.BeginTransaction();
+        CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
 
         MailDraft(subject, text)
             .AddMoney(money)
@@ -2921,7 +2907,7 @@ public:
 
         if (!pet->InitStatsForLevel(creatureTarget->getLevel()))
         {
-            TC_LOG_ERROR(LOG_FILTER_GENERAL, "InitStatsForLevel() in EffectTameCreature failed! Pet deleted.");
+            TC_LOG_ERROR("misc", "InitStatsForLevel() in EffectTameCreature failed! Pet deleted.");
             handler->PSendSysMessage("Error 2");
             delete pet;
             return false;
@@ -3127,7 +3113,7 @@ public:
             if (targetName)
             {
                 // Check for offline players
-                PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_GUID_BY_NAME);
+                CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_GUID_BY_NAME);
                 stmt->setString(0, name);
                 PreparedQueryResult result = CharacterDatabase.Query(stmt);
 
@@ -3158,7 +3144,7 @@ public:
     static bool HandleListFreezeCommand(ChatHandler* handler, char const* /*args*/)
     {
         // Get names from DB
-        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_AURA_FROZEN);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_AURA_FROZEN);
         PreparedQueryResult result = CharacterDatabase.Query(stmt);
         if (!result)
         {
@@ -3677,7 +3663,7 @@ public:
                             hasSecondary = true;
                     }
 
-                    TC_LOG_DEBUG(LOG_FILTER_SPELLS_AURAS, "ItemSpecStats SpecID %u hasPrimary %u, hasSecondary %u ItemSpecPrimaryStat %i PrimaryStat %i", itemSpec->SpecID, hasPrimary, hasSecondary, itemSpecStats.ItemSpecPrimaryStat, itemSpec->PrimaryStat);
+                    TC_LOG_DEBUG("spells", "ItemSpecStats SpecID %u hasPrimary %u, hasSecondary %u ItemSpecPrimaryStat %i PrimaryStat %i", itemSpec->SpecID, hasPrimary, hasSecondary, itemSpecStats.ItemSpecPrimaryStat, itemSpec->PrimaryStat);
 
                     if (!hasPrimary || !hasSecondary)
                         continue;
@@ -3800,7 +3786,7 @@ public:
 
         Player* player = handler->GetSession()->GetPlayer();
 
-        TC_LOG_DEBUG(LOG_FILTER_GENERAL, handler->GetTrinityString(LANG_ADDITEM), itemId, count);
+        TC_LOG_DEBUG("misc", handler->GetTrinityString(LANG_ADDITEM), itemId, count);
 
         ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(itemId);
         if (!itemTemplate)
@@ -4139,10 +4125,10 @@ public:
             return false;
         }
 
-        SQLTransaction trans = CharacterDatabase.BeginTransaction();
+        CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
         for (uint32 transmog : sDB2Manager.GetAllTransmogsByItemId(itemId))
         {
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_TRANSMOG);
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_TRANSMOG);
             stmt->setUInt32(0, account);
             stmt->setUInt32(1, transmog);
             trans->Append(stmt);

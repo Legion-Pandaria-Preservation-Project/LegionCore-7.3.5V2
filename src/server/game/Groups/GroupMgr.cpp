@@ -57,7 +57,7 @@ uint32 GroupMgr::GenerateNewGroupDbStoreId()
 
     if (newStorageId == NextGroupDbStoreId)
     {
-        TC_LOG_ERROR(LOG_FILTER_GENERAL, "Group storage ID overflow!! Can't continue, shutting down server. ");
+        TC_LOG_ERROR("misc", "Group storage ID overflow!! Can't continue, shutting down server. ");
         World::StopNow(ERROR_EXIT_CODE);
     }
 
@@ -95,7 +95,7 @@ ObjectGuid::LowType GroupMgr::GenerateGroupId()
 {
     if (NextGroupId >= std::numeric_limits<ObjectGuid::LowType>::max())
     {
-        TC_LOG_ERROR(LOG_FILTER_GENERAL, "Group guid overflow!! Can't continue, shutting down server. ");
+        TC_LOG_ERROR("misc", "Group guid overflow!! Can't continue, shutting down server. ");
         World::StopNow(ERROR_EXIT_CODE);
     }
     return NextGroupId++;
@@ -124,20 +124,20 @@ void GroupMgr::LoadGroups()
         // Delete all members that does not exist
         CharacterDatabase.DirectExecute("DELETE FROM group_member WHERE memberGuid NOT IN (SELECT guid FROM characters)");
         // Delete all groups whose leader does not exist
-        CharacterDatabase.DirectExecute("DELETE FROM groups WHERE leaderGuid NOT IN (SELECT guid FROM characters)");
+        CharacterDatabase.DirectExecute("DELETE FROM `groups` WHERE leaderGuid NOT IN (SELECT guid FROM characters)");
         // Delete all groups with less than 2 members
-        CharacterDatabase.DirectExecute("DELETE FROM groups WHERE guid NOT IN (SELECT guid FROM group_member GROUP BY guid HAVING COUNT(guid) > 1)");
+        CharacterDatabase.DirectExecute("DELETE FROM `groups` WHERE guid NOT IN (SELECT guid FROM group_member GROUP BY guid HAVING COUNT(guid) > 1)");
         // Delete all rows from group_member or group_instance with no group
-        CharacterDatabase.DirectExecute("DELETE FROM group_member WHERE guid NOT IN (SELECT guid FROM groups)");
-        CharacterDatabase.DirectExecute("DELETE FROM group_instance WHERE guid NOT IN (SELECT guid FROM groups)");
+        CharacterDatabase.DirectExecute("DELETE FROM group_member WHERE guid NOT IN (SELECT guid FROM `groups`)");
+        CharacterDatabase.DirectExecute("DELETE FROM group_instance WHERE guid NOT IN (SELECT guid FROM `groups`)");
 
         //                                                        0              1           2             3                 4      5          6      7         8       9
         QueryResult result = CharacterDatabase.Query("SELECT g.leaderGuid, g.lootMethod, g.looterGuid, g.lootThreshold, g.icon1, g.icon2, g.icon3, g.icon4, g.icon5, g.icon6"
             //  10         11          12         13              14            15         16           17
-            ", g.icon7, g.icon8, g.groupType, g.difficulty, g.raiddifficulty, g.guid, lfg.dungeon, lfg.state FROM groups g LEFT JOIN lfg_data lfg ON lfg.guid = g.guid ORDER BY g.guid ASC");
+            ", g.icon7, g.icon8, g.groupType, g.difficulty, g.raiddifficulty, g.guid, lfg.dungeon, lfg.state FROM `groups` g LEFT JOIN lfg_data lfg ON lfg.guid = g.guid ORDER BY g.guid ASC");
         if (!result)
         {
-            TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded 0 group definitions. DB table `groups` is empty!");
+            TC_LOG_INFO("server.loading", ">> Loaded 0 group definitions. DB table `groups` is empty!");
             return;
         }
 
@@ -162,10 +162,10 @@ void GroupMgr::LoadGroups()
         }
         while (result->NextRow());
 
-        TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded %u group definitions in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
+        TC_LOG_INFO("server.loading", ">> Loaded %u group definitions in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
     }
 
-    TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, "Loading Group members...");
+    TC_LOG_INFO("server.loading", "Loading Group members...");
     {
         uint32 oldMSTime = getMSTime();
 
@@ -173,7 +173,7 @@ void GroupMgr::LoadGroups()
         QueryResult result = CharacterDatabase.Query("SELECT guid, memberGuid, memberFlags, subgroup, roles FROM group_member ORDER BY guid");
         if (!result)
         {
-            TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded 0 group members. DB table `group_member` is empty!");
+            TC_LOG_INFO("server.loading", ">> Loaded 0 group members. DB table `group_member` is empty!");
             return;
         }
 
@@ -187,24 +187,24 @@ void GroupMgr::LoadGroups()
             if (group)
                 group->LoadMemberFromDB(fields[1].GetUInt32(), fields[2].GetUInt8(), fields[3].GetUInt8(), fields[4].GetUInt8());
             else
-                TC_LOG_ERROR(LOG_FILTER_GENERAL, "GroupMgr::LoadGroups: Consistency failed, can't find group (storage id: %u)", fields[0].GetUInt32());
+                TC_LOG_ERROR("misc", "GroupMgr::LoadGroups: Consistency failed, can't find group (storage id: %u)", fields[0].GetUInt32());
 
             ++count;
         }
         while (result->NextRow());
 
-        TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded %u group members in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
+        TC_LOG_INFO("server.loading", ">> Loaded %u group members in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
     }
 
-    TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, "Loading Group instance saves...");
+    TC_LOG_INFO("server.loading", "Loading Group instance saves...");
     {
         uint32 oldMSTime = getMSTime();
         //                                                      0           1        2            3             4                 5                6           7             8
         QueryResult result = CharacterDatabase.Query("SELECT gi.guid, gi.instance, gi.map, gi.difficulty, gi.permanent, gi.completedEncounters, gi.data, gi.resetTime, COUNT(g.guid) "
-            "FROM group_instance gi LEFT JOIN character_instance ci LEFT JOIN groups g ON g.leaderGuid = ci.guid ON ci.instance = gi.instance AND ci.permanent = 1 GROUP BY gi.instance ORDER BY gi.guid");
+            "FROM group_instance gi LEFT JOIN character_instance ci LEFT JOIN `groups` g ON g.leaderGuid = ci.guid ON ci.instance = gi.instance AND ci.permanent = 1 GROUP BY gi.instance ORDER BY gi.guid");
         if (!result)
         {
-            TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded 0 group-instance saves. DB table `group_instance` is empty!");
+            TC_LOG_INFO("server.loading", ">> Loaded 0 group-instance saves. DB table `group_instance` is empty!");
             return;
         }
 
@@ -228,7 +228,7 @@ void GroupMgr::LoadGroups()
             MapEntry const* mapEntry = sMapStore.LookupEntry(mapId);
             if (!mapEntry || !mapEntry->IsDungeon())
             {
-                TC_LOG_ERROR(LOG_FILTER_SQL, "Incorrect entry in group_instance table : no dungeon map %d", mapId);
+                TC_LOG_ERROR("sql.sql", "Incorrect entry in group_instance table : no dungeon map %d", mapId);
                 continue;
             }
 
@@ -238,7 +238,7 @@ void GroupMgr::LoadGroups()
 
             if (resetTime <= time(nullptr))
             {
-                PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_GROUP_INSTANCE_BY_GUID);
+                CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_GROUP_INSTANCE_BY_GUID);
                 stmt->setUInt64(0, guid);
                 stmt->setUInt32(1, instanceId);
                 CharacterDatabase.Execute(stmt);
@@ -255,6 +255,6 @@ void GroupMgr::LoadGroups()
         }
         while (result->NextRow());
 
-        TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded %u group-instance saves in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
+        TC_LOG_INFO("server.loading", ">> Loaded %u group-instance saves in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
     }
 }

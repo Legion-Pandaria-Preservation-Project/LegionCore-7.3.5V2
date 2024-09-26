@@ -154,14 +154,13 @@ enum SMART_EVENT
     SMART_EVENT_GO_EVENT_INFORM          = 71,      // eventId
     SMART_EVENT_ACTION_DONE              = 72,      // eventId (SharedDefines.EventId)
     SMART_EVENT_ON_SPELLCLICK            = 73,      // clicker (unit), cooldown min, cooldown max
-	SMART_EVENT_DISTANCE_CREATURE        = 79,      // guid, entry, distance, repeat
-    SMART_EVENT_COUNTER_SET              = 80,      // id, value, cooldownMin, cooldownMax
 
     SMART_EVENT_CHECK_DIST_TO_HOME       = 74,      // clicker (unit)
     SMART_EVENT_EVENTOBJECT_ONTRIGGER    = 75,      // EventObject(0 any), CooldownMin, CooldownMax
     SMART_EVENT_ON_TAXIPATHTO            = 76,      // clicker (unit)
     SMART_EVENT_EVENTOBJECT_OFFTRIGGER   = 77,      // EventObject(0 any), CooldownMin, CooldownMax
-    SMART_EVENT_ON_APPLY_OR_REMOVE_AURA  = 78,      // SpellId, Mode, ApplyOrRemove(1/0), Cooldown    
+    SMART_EVENT_ON_APPLY_OR_REMOVE_AURA  = 78,      // SpellId, Mode, ApplyOrRemove(1/0), Cooldown
+	SMART_EVENT_DISTANCE_CREATURE        = 79,      // guid, entry, distance, repeat
 
     SMART_EVENT_END                      = 80
 };
@@ -417,13 +416,6 @@ struct SmartEvent
 			uint32 repeat;
 		} distance;
 
-        struct
-        {
-            uint32 id;
-            uint32 value;
-            uint32 cooldownMin;
-            uint32 cooldownMax;
-        } counter;
     };
 };
 
@@ -438,7 +430,7 @@ enum SMART_SCRIPT_RESPAWN_CONDITION
 enum SMART_ACTION
 {
     SMART_ACTION_NONE                               = 0,      // No action
-    SMART_ACTION_TALK                               = 1,      // groupID from creature_text, duration to wait before TEXT_OVER event is triggered, useTalkTarget (0/1) - use target as talk target
+    SMART_ACTION_TALK                               = 1,      // groupID from creature_text, duration to wait before TEXT_OVER event is triggered
     SMART_ACTION_SET_FACTION                        = 2,      // FactionId (or 0 for default)
     SMART_ACTION_MORPH_TO_ENTRY_OR_MODEL            = 3,      // Creature_template entry(param1) OR ModelId (param2) (or 0 for both to demorph)
     SMART_ACTION_SOUND                              = 4,      // SoundId, TextRange
@@ -464,7 +456,7 @@ enum SMART_ACTION
     SMART_ACTION_EVADE                              = 24,     // No Params
     SMART_ACTION_FLEE_FOR_ASSIST                    = 25,     // With Emote
     SMART_ACTION_CALL_GROUPEVENTHAPPENS             = 26,     // QuestID
-    SMART_ACTION_COMBAT_STOP                        = 27,     //
+    SMART_ACTION_PLAY_SPELL_VISUAL_KIT              = 27,     // KitType
     SMART_ACTION_REMOVEAURASFROMSPELL               = 28,     // Spellid, 0 removes all auras
     SMART_ACTION_FOLLOW                             = 29,     // Distance (0 = default), Angle (0 = default), EndCreatureEntry, credit, creditType (0monsterkill, 1event)
     SMART_ACTION_RANDOM_PHASE                       = 30,     // PhaseId1, PhaseId2, PhaseId3...
@@ -482,6 +474,7 @@ enum SMART_ACTION
     SMART_ACTION_SET_INVINCIBILITY_HP_LEVEL         = 42,     // MinHpValue(+pct, -flat)
     SMART_ACTION_MOUNT_TO_ENTRY_OR_MODEL            = 43,     // Creature_template entry(param1) OR ModelId (param2) (or 0 for both to dismount)
     SMART_ACTION_SET_INGAME_PHASE_MASK              = 44,     // mask
+
     SMART_ACTION_SET_DATA                           = 45,     // Field, Data (only creature TODO)
     SMART_ACTION_MOVE_FORWARD                       = 46,     // distance
     SMART_ACTION_SET_VISIBILITY                     = 47,     // on/off
@@ -500,10 +493,11 @@ enum SMART_ACTION
     SMART_ACTION_SET_FLY                            = 60,     // 0/1
     SMART_ACTION_SET_SWIM                           = 61,     // 0/1
     SMART_ACTION_TELEPORT                           = 62,     // mapID,
-    SMART_ACTION_SET_COUNTER                        = 63,     // id, value, reset (0/1)
+    SMART_ACTION_STORE_VARIABLE_DECIMAL             = 63,     // varID, number
     SMART_ACTION_STORE_TARGET_LIST                  = 64,     // varID,
     SMART_ACTION_WP_RESUME                          = 65,     // none
     SMART_ACTION_SET_ORIENTATION                    = 66,     //
+
     SMART_ACTION_CREATE_TIMED_EVENT                 = 67,     // id, InitialMin, InitialMax, RepeatMin(only if it repeats), RepeatMax(only if it repeats), chance
     SMART_ACTION_PLAYMOVIE                          = 68,     // entry
     SMART_ACTION_MOVE_TO_POS                        = 69,     // PointId, xyz
@@ -552,21 +546,9 @@ enum SMART_ACTION
     SMART_ACTION_GAME_EVENT_START                   = 112,    // GameEventId
     SMART_ACTION_START_CLOSEST_WAYPOINT             = 113,    // wp1, wp2, wp3, wp4, wp5, wp6, wp7
     SMART_ACTION_RISE_UP                            = 114,    // distance
-    SMART_ACTION_SET_CORPSE_DELAY                   = 116,    // timer
     SMART_ACTION_DISABLE_EVADE                      = 117,    // 0/1 (1 = disabled, 0 = enabled)
-    SMART_ACTION_GO_SET_GO_STATE                    = 118,    // state
     SMART_ACTION_SET_CAN_FLY                        = 119,    // 0/1 (0 = disabled, 1 = enabled)
-    SMART_ACTION_REMOVE_AURAS_BY_TYPE               = 120,    // type
-    SMART_ACTION_SET_SIGHT_DIST                     = 121,    // sightDistance
-    SMART_ACTION_FLEE                               = 122,    // fleeTime
-    SMART_ACTION_ADD_THREAT                         = 123,    // +threat, -threat
-    SMART_ACTION_LOAD_EQUIPMENT                     = 124,    // id
-    SMART_ACTION_TRIGGER_RANDOM_TIMED_EVENT         = 125,    // id min range, id max range
-    SMART_ACTION_REMOVE_ALL_GAMEOBJECTS             = 126,
-    SMART_ACTION_STOP_MOTION                        = 127,    // stopMoving, movementExpired
     SMART_ACTION_PLAY_ANIMKIT                       = 128,    // id, type (0 = oneShot, 1 = aiAnim, 2 = meleeAnim, 3 = movementAnim)
-
-    // Core Actions
     SMART_ACTION_BOSS_EVADE                         = 200,    // No Params
     SMART_ACTION_BOSS_ANOUNCE                       = 201,    // TextId from trinity_ctring
     SMART_ACTION_MOVE_Z                             = 202,    // TextId from trinity_ctring
@@ -592,17 +574,7 @@ enum SMART_ACTION
     SMART_ACTION_SEND_GO_VISUAL_ID                  = 222,    // Visual ID
     SMART_ACTION_COMPLETE_QUEST                     = 223,    // Complete quest by ID (misc1, misc2 ...)
     SMART_ACTION_SET_HEALTH_IN_PERCENT              = 224,    // Set hp in percent
-    SMART_ACTION_MODIFY_THREAT                      = 225,    // increase, decrease
-    SMART_ACTION_SET_OVERRIDE_ZONE_MUSIC            = 226,    // zone Id, music Id.
-    SMART_ACTION_SET_POWER_TYPE                     = 227,    // Power Type. See enum in Unit.h
-    SMART_ACTION_SET_MAX_POWER                      = 228,    // Power Type, value
-    SMART_ACTION_ADD_FLYING_MOVEMENT_FLAG           = 229,    // Variation
-    SMART_ACTION_REMOVE_FLYING_MOVEMENT_FLAG        = 230,    // Variation
-    SMART_ACTION_CAST_SPELL_OFFSET                  = 231,    // SpellId, triggered if value = 1.
-    SMART_ACTION_STORE_VARIABLE_DECIMAL             = 232,     // varID, number
-    SMART_ACTION_PLAY_SPELL_VISUAL_KIT              = 233,     // KitType
-
-    SMART_ACTION_END                                = 234,
+    SMART_ACTION_END                                = 225,
 };
 
 struct SmartAction
@@ -615,7 +587,6 @@ struct SmartAction
         {
             uint32 textGroupID;
             uint32 duration;
-            uint32 useTalkTarget;
         } talk;
 
         struct
@@ -946,13 +917,6 @@ struct SmartAction
 
         struct
         {
-            uint32 counterId;
-            uint32 value;
-            uint32 reset;
-        } setCounter;
-
-        struct
-        {
             uint32 id;
             uint32 number;
         } storeVar;
@@ -1045,7 +1009,7 @@ struct SmartAction
         struct
         {
             uint32 withEmote;
-        } fleeAssist;
+        } flee;
 
         struct
         {
@@ -1088,6 +1052,9 @@ struct SmartAction
         {
             uint32 root;
         } setRoot;
+
+        //! Note for any new future actions
+        //! All parameters must have type uint32
 
         struct
         {
@@ -1244,79 +1211,6 @@ struct SmartAction
         struct {
             uint32 ignore;
         } ignorePathfinding;
-
-        struct
-        {
-            uint32 timer;
-        } corpseDelay;
-
-        struct
-        {
-            uint32 state;
-        } goState;
-
-        struct
-        {
-            uint32 type;
-        } auraType;
-
-        struct
-        {
-            uint32 dist;
-        } sightDistance;
-
-        struct
-        {
-            uint32 fleeTime;
-        } flee;
-
-        struct
-        {
-            uint32 id;
-            uint32 force;
-        } loadEquipment;
-
-        struct
-        {
-            uint32 minId;
-            uint32 maxId;
-        } randomTimedEvent;
-
-        struct
-        {
-            uint32 stopMovement;
-            uint32 movementExpired;
-        } stopMotion;
-
-        struct {
-            uint32 increase;
-            uint32 decrease;
-        } modifyThreat;
-
-        struct
-        {
-            uint32 zoneId;
-            uint32 musicId;
-        } setOverrideZoneMusic;
-
-        struct
-        {
-            uint32 powerType;
-        } powerType;
-
-        struct
-        {
-            uint32 variationMovementFlags;
-        } SetMovementFlags;
-
-        struct
-        {
-            uint32 spellId;
-            uint32 triggered;
-        } castOffSet;
-
-        //! Note for any new future actions
-        //! All parameters must have type uint32
     };
 };
 
@@ -1718,7 +1612,7 @@ class SmartAIMgr
         {
             if (target < SMART_TARGET_NONE || target >= SMART_TARGET_END)
             {
-                TC_LOG_ERROR(LOG_FILTER_SQL, "SmartAIMgr: Entry %d SourceType %u Event %u Action %u uses invalid Target type %d, skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), target);
+                TC_LOG_ERROR("sql.sql", "SmartAIMgr: Entry %d SourceType %u Event %u Action %u uses invalid Target type %d, skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), target);
                 return false;
             }
             return true;
@@ -1730,7 +1624,7 @@ class SmartAIMgr
         {
             if (pct < -100 || pct > 100)
             {
-                TC_LOG_ERROR(LOG_FILTER_SQL, "SmartAIMgr: Entry %d SourceType %u Event %u Action %u has invalid Percent set (%d), skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), pct);
+                TC_LOG_ERROR("sql.sql", "SmartAIMgr: Entry %d SourceType %u Event %u Action %u has invalid Percent set (%d), skipped.", e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType(), pct);
                 return false;
             }
             return true;

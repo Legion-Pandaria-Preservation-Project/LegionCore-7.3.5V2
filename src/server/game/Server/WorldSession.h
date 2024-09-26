@@ -375,8 +375,6 @@ namespace WorldPackets
         class TwitterConnect;
         class TwitterDisconnect;
         class ResetChallengeModeCheat;
-        class ConversationLineStarted;
-        class CheckRAFEmailEnabled;
     }
 
     namespace Movement
@@ -844,9 +842,6 @@ namespace WorldPackets
         class GarrisonGenerateRecruits;
         class GarrisonRemoveFollower;
         class GarrisonRequestScoutingMap;
-        class GarrisonGetMissionReward;
-        class GarrisonSetBuildingActive;
-        class GarrisonSetFollowerFavorite;
     }
     
     namespace Taxi
@@ -1050,7 +1045,7 @@ typedef std::map<uint32, CharacterTemplateData> CharacterTemplateDataMap;
 class WorldSession
 {
     public:
-        WorldSession(uint32 id, std::string&& name, uint32 battlenetAccountId, const std::shared_ptr<WorldSocket>& sock, AccountTypes sec, uint8 expansion, time_t mute_time, std::string os, LocaleConstant locale, uint32 recruiter, bool isARecruiter, AuthFlags flag);
+        WorldSession(uint32 id, std::string&& name, const std::shared_ptr<WorldSocket>& sock, AccountTypes sec, uint8 expansion, time_t mute_time, std::string os, LocaleConstant locale, uint32 recruiter, bool isARecruiter, AuthFlags flag, std::unordered_map<uint8, int64>&& accountTokenMap, uint32 referer);
         ~WorldSession();
 
         bool PlayerLoading() const { return !m_playerLoading.IsEmpty(); }
@@ -1069,10 +1064,10 @@ class WorldSession
         void SendSetPhaseShift(std::vector<WorldPackets::Misc::PhaseShiftDataPhase> phases, std::vector<uint16> const& visibleMapIDs, std::vector<uint16> const& uiWorldMapAreaIDSwaps, std::vector<uint16> const& preloadMapIDs, uint32 phaseShiftFlags = 0x1F);
         void SendQueryTimeResponse();
 
-        void SendAuthResponse(uint8 code, bool CharacterTemplate, bool queued = false, uint32 queuePos = 0);
+        void SendAuthResponse(uint8 code, bool queued = false, uint32 queuePos = 0);
         void SendClientCacheVersion(uint32 version);
         void InitializeSession();
-        void InitializeSessionCallback(SQLQueryHolder* realmHolder, SQLQueryHolder* holder);
+        void InitializeSessionCallback(LoginDatabaseQueryHolder* realmHolder, CharacterDatabaseQueryHolder* holder);
 
         void HandleGetPurchaseListQuery(WorldPackets::BattlePay::GetPurchaseListQuery& packet);
         void HandleBattlePayQueryClassTrialResult(WorldPackets::BattlePay::BattlePayQueryClassTrialResult& packet);
@@ -1089,7 +1084,6 @@ class WorldSession
         uint32 GetAccountId() const { return _accountId; }
         ObjectGuid GetAccountGUID() const;
         std::string const& GetAccountName() const { return _accountName; }
-        uint32 GetBattlenetAccountId() const { return _battlenetAccountId; }
         uint8 GetAccountExpansion() const { return m_accountExpansion; }
         ObjectGuid GetBattlenetAccountGUID() const;
         Player* GetPlayer() const { return _player; }
@@ -1172,7 +1166,7 @@ class WorldSession
 
         void LoadTutorialsData(PreparedQueryResult const& result);
         void SendTutorialsData();
-        void SaveTutorialsData(SQLTransaction& trans);
+        void SaveTutorialsData(CharacterDatabaseTransaction& trans);
         uint32 GetTutorialInt(uint8 index) const;
         void SetTutorialInt(uint8 index, uint32 value);
         //auction
@@ -1597,8 +1591,6 @@ class WorldSession
 
         void HandleTransmogrifyItems(WorldPackets::Transmogrification::TransmogrifyItems& transmogrifyItems);
 
-        void SendQuestgiverStatusMultipleQuery();
-
         bool processChatmessageFurtherAfterSecurityChecks(std::string&, uint32);
         void HandleChatMessageOpcode(WorldPackets::Chat::ChatMessage& packet);
         void HandleChatMessageAFK(WorldPackets::Chat::ChatMessageAFK& packet);
@@ -1742,9 +1734,9 @@ class WorldSession
 
         void HandleSocketGems(WorldPackets::Item::SocketGems& packet);
 
-        void HandleSortBags(WorldPackets::Item::SortBags& sortBags);
-        void HandleSortBankBags(WorldPackets::Item::SortBankBags& sortBankBags);
-        void HandleSortReagentBankBags(WorldPackets::Item::SortReagentBankBags& sortReagentBankBags);
+        void HandleSortBags(WorldPackets::Item::SortBags& packet);
+        void HandleSortBankBags(WorldPackets::Item::SortBankBags& packet);
+        void HandleSortReagentBankBags(WorldPackets::Item::SortReagentBankBags& packet);
 
         void HandleCancelTempEnchantmentOpcode(WorldPackets::Item::CancelTempEnchantment& packet);
 
@@ -1914,6 +1906,7 @@ class WorldSession
         void HandleGarrisonGetBuildingLandmarks(WorldPackets::Garrison::GarrisonGetBuildingLandmarks& packet);
         void HandleGarrisonMissionBonusRoll(WorldPackets::Garrison::GarrisonMissionBonusRoll& packet);
         void HandleGarrisonRequestLandingPageShipmentInfo(WorldPackets::Garrison::GarrisonRequestLandingPageShipmentInfo& packet);
+        bool AdventureMapPOIAvailable(uint32 adventureMapPOIID);
         void HandleGarrisonRequestScoutingMap(WorldPackets::Garrison::GarrisonRequestScoutingMap& scoutingMap);
         void HandleGarrisonCheckUpgradeable(WorldPackets::Garrison::GarrisonCheckUpgradeable& packet);
         void HandleGarrisonStartMission(WorldPackets::Garrison::GarrisonStartMission& packet);
@@ -1936,9 +1929,6 @@ class WorldSession
         void HandleGarrisonRemoveFollower(WorldPackets::Garrison::GarrisonRemoveFollower& packet);
         void HandleGarrisonRenameFollower(WorldPackets::Garrison::GarrisonRenameFollower& packet);
         void HandleGarrisonSetRecruitmentPreferences(WorldPackets::Garrison::GarrisonSetRecruitmentPreferences& packet);
-        void HandleGarrisonGetMissionReward(WorldPackets::Garrison::GarrisonGetMissionReward& packet);
-        void HandleGarrisonSetBuildingActive(WorldPackets::Garrison::GarrisonSetBuildingActive& packet);
-        void HandleGarrisonSetFollowerFavorite(WorldPackets::Garrison::GarrisonSetFollowerFavorite& packet);
 
         void HandleAddToy(WorldPackets::Toy::AddToy& packet);
         void HandleUseToy(WorldPackets::Toy::UseToy& packet);
@@ -1975,8 +1965,6 @@ class WorldSession
         void HandleContributionCollectorContribute(WorldPackets::Misc::ContributionCollectorContribute& packet);
         void HandleContributionGetState(WorldPackets::Misc::ContributionGetState& packet);
         void HandleHotfixRequest(WorldPackets::Hotfix::HotfixRequest& packet);
-        void HandleConversationLineStarted(WorldPackets::Misc::ConversationLineStarted& packet);
-        void HandleCheckRAFEmailEnabled(WorldPackets::Misc::CheckRAFEmailEnabled& packet);
 
         // Battle Pay
         AuthFlags GetAF() const { return atAuthFlag;  }
@@ -1984,6 +1972,9 @@ class WorldSession
         void AddAuthFlag(AuthFlags f);
         void RemoveAuthFlag(AuthFlags f);
         void SaveAuthFlag();
+        int64 GetTokenBalance(uint8 tokenType) { return tokens.count(tokenType) > 0 ? tokens[tokenType] : 0; }
+        void ChangeTokenBalance(uint8 tokenType, int64 change) { tokens.count(tokenType) > 0 ? tokens[tokenType] += change : tokens[tokenType] = change; }
+        uint32 GetReferer() { return _referer; }
 
         void SendCharacterEnum(bool deleted = false);
 
@@ -2083,7 +2074,6 @@ class WorldSession
 
         AccountTypes _security;
         uint32 _accountId;
-        uint32 _battlenetAccountId;
         uint8 m_expansion;
         uint8 m_accountExpansion;
         std::string _accountName;
@@ -2114,7 +2104,7 @@ class WorldSession
         uint32 _tutorials[MAX_ACCOUNT_TUTORIAL_VALUES];
         bool   _tutorialsChanged;
         AddonsList m_addonsList;
-        StringSet _registeredAddonPrefixes;
+        std::vector<std::string> _registeredAddonPrefixes;
         bool _filterAddonMessages;
         uint32 recruiterId;
         bool isRecruiter;
@@ -2124,6 +2114,8 @@ class WorldSession
         uint32 expireTime;
         bool forceExit;
         std::atomic<bool> m_sUpdate;
+        std::unordered_map<uint8, int64> tokens;
+        uint32 _referer;
 
         bool wardenModuleFailed;
 

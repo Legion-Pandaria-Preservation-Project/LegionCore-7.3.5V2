@@ -28,15 +28,7 @@
 void UnitAI::AttackStart(Unit* victim)
 {
     if (victim && me->Attack(victim, true))
-    {
-        // Clear distracted state on attacking
-        if (me->HasUnitState(UNIT_STATE_DISTRACTED))
-        {
-            me->ClearUnitState(UNIT_STATE_DISTRACTED);
-            me->GetMotionMaster()->Clear();
-        }
         me->GetMotionMaster()->MoveChase(victim);
-    }
 }
 
 void UnitAI::AttackStartCaster(Unit* victim, float dist)
@@ -192,7 +184,7 @@ void UnitAI::DoCastTopAggro(uint32 spellId, bool triggered, bool onlyPlayer /*= 
 void UnitAI::DoCast(uint32 spellId)
 {
     Unit* target = nullptr;
-    //TC_LOG_ERROR(LOG_FILTER_GENERAL, "aggre %u %u", spellId, (uint32)AISpellInfo[spellId].target);
+    //TC_LOG_ERROR("misc", "aggre %u %u", spellId, (uint32)AISpellInfo[spellId].target);
     switch (AISpellInfo[spellId].target)
     {
     default:

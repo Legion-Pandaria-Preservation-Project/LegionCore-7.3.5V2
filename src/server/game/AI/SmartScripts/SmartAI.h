@@ -222,7 +222,7 @@ class SmartAI : public CreatureAI
         uint32 mWPPauseTimer;
         WayPoint* mLastWP;
         Position mLastOOCPos;//set on enter combat
-        uint32 GetWPCount() const;
+        uint32 GetWPCount();
         bool mCanRepeatPath;
         bool mRun;
         bool mEvadeDisabled;

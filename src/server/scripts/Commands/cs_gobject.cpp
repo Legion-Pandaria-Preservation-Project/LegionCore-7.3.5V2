@@ -15,6 +15,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* ScriptData
+Name: gobject_commandscript
+%Complete: 100
+Comment: All gobject related commands
+Category: commandscripts
+EndScriptData */
+
 #include "ScriptMgr.h"
 #include "GameEventMgr.h"
 #include "ObjectMgr.h"
@@ -173,7 +180,7 @@ public:
         if (objectInfo->displayId && !sGameObjectDisplayInfoStore.LookupEntry(objectInfo->displayId))
         {
             // report to DB errors log as in loading case
-            TC_LOG_ERROR(LOG_FILTER_SQL, "Gameobject (Entry %u GoType: %u) have invalid displayId (%u), not spawned.", objectId, objectInfo->type, objectInfo->displayId);
+            TC_LOG_ERROR("sql.sql", "Gameobject (Entry %u GoType: %u) have invalid displayId (%u), not spawned.", objectId, objectInfo->type, objectInfo->displayId);
             handler->PSendSysMessage(LANG_GAMEOBJECT_HAVE_INVALID_DATA, objectId);
             handler->SetSentErrorMessage(true);
             return false;
@@ -580,7 +587,7 @@ public:
 
         Player* player = handler->GetSession()->GetPlayer();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_NEAREST);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_NEAREST);
         stmt->setFloat(0, player->GetPositionX());
         stmt->setFloat(1, player->GetPositionY());
         stmt->setFloat(2, player->GetPositionZ());
@@ -697,13 +704,6 @@ public:
             object->SetByteValue(GAMEOBJECT_FIELD_BYTES_1, objectType, objectState);
         else if (objectType == 4)
             object->SendCustomAnim(objectState);
-        else if (objectType == 5)
-        {
-            if (objectState < 0 || objectState > GO_DESTRUCTIBLE_REBUILDING)
-                return false;
-
-            object->SetDestructibleState(GameObjectDestructibleState(objectState));
-        }
         handler->PSendSysMessage("Set gobject type %d state %d", objectType, objectState);
         return true;
     }

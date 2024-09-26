@@ -15,11 +15,17 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* ScriptData
+Name: message_commandscript
+%Complete: 100
+Comment: All message related commands
+Category: commandscripts
+EndScriptData */
+
 #include "ScriptMgr.h"
 #include "Chat.h"
 #include "ChannelMgr.h"
 #include "Packets/ChatPackets.h"
-#include "DatabaseEnv.h"
 
 class message_commandscript : public CommandScript
 {
@@ -70,7 +76,7 @@ public:
         {
             if (channcel)
                 channcel->SetOwnership(true);
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHANNEL_OWNERSHIP);
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHANNEL_OWNERSHIP);
             stmt->setUInt8 (0, 1);
             stmt->setString(1, channelStr);
             CharacterDatabase.Execute(stmt);
@@ -80,7 +86,7 @@ public:
         {
             if (channcel)
                 channcel->SetOwnership(false);
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHANNEL_OWNERSHIP);
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHANNEL_OWNERSHIP);
             stmt->setUInt8 (0, 0);
             stmt->setString(1, channelStr);
             CharacterDatabase.Execute(stmt);

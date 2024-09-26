@@ -214,8 +214,8 @@ public:
     explicit Garrison(Player* owner);
 
     bool LoadFromDB(PreparedQueryResult const& garrison, PreparedQueryResult const& blueprints, PreparedQueryResult const& buildings, PreparedQueryResult const& followers, PreparedQueryResult const& abilities, PreparedQueryResult const& missions, PreparedQueryResult const& shipments, PreparedQueryResult const& talents);
-    void SaveToDB(SQLTransaction const& trans);
-    static void DeleteFromDB(ObjectGuid::LowType ownerGuid, SQLTransaction const& trans);
+    void SaveToDB(CharacterDatabaseTransaction const& trans);
+    static void DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTransaction const& trans);
 
     bool Create(uint32 garrSiteId, bool skip_teleport = false);
     void Delete();
@@ -269,7 +269,7 @@ public:
     void AddMission(uint32 missionRecID, bool sendLog = true);
     void GenerateRandomMission(uint16 count = 0);
     Mission const* GetMission(uint64 dbId) const;
-	std::unordered_map<uint64 /*dbId*/, Mission> const& GetMissions(GarrisonType gt) const { return _missions[gt]; }
+    std::unordered_map<uint64 /*dbId*/, Mission> const& GetMissions(GarrisonType gt) const { return _missions[gt]; }
     Mission* GetMissionByRecID(uint32 missionRecID);
     void RemoveMissionByGuid(uint64 guid);
     void RewardMission(uint32 missionRecID, bool owermax = false);
@@ -279,7 +279,8 @@ public:
     void SendRemoteInfo() const;
     void SendBlueprintAndSpecializationData();
     void SendBuildingLandmarks(Player* receiver) const;
-    void SendGarrisonUpgradebleResult(Player* receiver, int32 garrTypeID) const;
+    uint32 CanUpgrade(Player* receiver, GarrSiteLevelEntry const* site) const;
+    void SendGarrisonUpgradebleResult(Player* receiver, int32 garrSiteID) const;
     void SendMissionListUpdate(bool openMissionNpc) const;
 
     void ResetFollowerActivationLimit();

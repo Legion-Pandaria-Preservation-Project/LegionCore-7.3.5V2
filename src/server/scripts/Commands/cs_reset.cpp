@@ -15,9 +15,15 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* ScriptData
+Name: reset_commandscript
+%Complete: 100
+Comment: All reset related commands
+Category: commandscripts
+EndScriptData */
+
 #include "ScriptMgr.h"
 #include "Chat.h"
-#include "DatabaseEnv.h"
 
 class reset_commandscript : public CommandScript
 {
@@ -75,7 +81,7 @@ public:
         ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(player->getClass());
         if (!classEntry)
         {
-            TC_LOG_ERROR(LOG_FILTER_GENERAL, "Class %u not found in DBC (Wrong DBC files?)", player->getClass());
+            TC_LOG_ERROR("misc", "Class %u not found in DBC (Wrong DBC files?)", player->getClass());
             return false;
         }
 
@@ -125,7 +131,7 @@ public:
         }
         else
         {
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
             stmt->setUInt16(0, uint16(AT_LOGIN_RESET_SPELLS));
             stmt->setUInt64(1, targetGuid.GetGUIDLow());
             CharacterDatabase.Execute(stmt);
@@ -181,7 +187,7 @@ public:
         }
         if (targetGuid)
         {
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
             stmt->setUInt16(0, uint16(AT_LOGIN_NONE | AT_LOGIN_RESET_PET_TALENTS));
             stmt->setUInt64(1, targetGuid.GetGUIDLow());
             CharacterDatabase.Execute(stmt);
@@ -222,7 +228,7 @@ public:
         }
         if (targetGuid)
         {
-            PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
             stmt->setUInt16(0, uint16(AT_LOGIN_NONE | AT_LOGIN_RESET_SPELLS | AT_LOGIN_RESET_TALENTS));
             stmt->setUInt64(1, targetGuid.GetGUIDLow());
             CharacterDatabase.Execute(stmt);

@@ -15,6 +15,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* ScriptData
+Name: npc_commandscript
+%Complete: 100
+Comment: All npc related commands
+Category: commandscripts
+EndScriptData */
+
 #include "ScriptMgr.h"
 #include "ObjectMgr.h"
 #include "Chat.h"
@@ -22,7 +29,6 @@
 #include "CreatureGroups.h"
 #include "TargetedMovementGenerator.h"                      // for HandleNpcUnFollowCommand
 #include "CreatureAI.h"
-#include "DatabaseEnv.h"
 
 template<typename E, typename T = char const*>
 struct EnumName
@@ -419,7 +425,7 @@ public:
             wait = 0;
 
         // Update movement type
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_MOVEMENT_TYPE);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_MOVEMENT_TYPE);
 
         stmt->setUInt8(0, uint8(WAYPOINT_MOTION_TYPE));
         stmt->setUInt64(1, lowGuid);
@@ -635,7 +641,7 @@ public:
         }
 
         // ..and DB
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_FACTION);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_FACTION);
 
         stmt->setUInt16(0, uint16(factionId));
         stmt->setUInt32(1, creature->GetEntry());
@@ -664,7 +670,7 @@ public:
 
         creature->SetUInt32Value(UNIT_FIELD_NPC_FLAGS, npcFlags);
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_NPCFLAG);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_NPCFLAG);
 
         stmt->setUInt32(0, npcFlags);
         stmt->setUInt32(1, creature->GetEntry());
@@ -951,121 +957,6 @@ public:
         {
             std::ostringstream ss_flags;
 
-            if (uint32 unitFlag2 = target->GetUInt32Value(UNIT_FIELD_FLAGS_2))
-            {
-                ss_flags << unitFlag2 << " : ";
-                // fix this
-                if (unitFlag2 & UNIT_FLAG2_FEIGN_DEATH)
-                    ss_flags << "FeignDeath ";
-                if (unitFlag2 & UNIT_FLAG2_UNK1)
-                    ss_flags << "UNK1 ";
-                if (unitFlag2 & UNIT_FLAG2_IGNORE_REPUTATION)
-                    ss_flags << "IgnoreReputation ";
-                if (unitFlag2 & UNIT_FLAG2_COMPREHEND_LANG)
-                    ss_flags << "ComprehendLang ";
-                if (unitFlag2 & UNIT_FLAG2_MIRROR_IMAGE)
-                    ss_flags << "MirrorImage ";
-                if (unitFlag2 & UNIT_FLAG2_INSTANTLY_APPEAR_MODEL)
-                    ss_flags << "InstantlyAppearModel ";
-                if (unitFlag2 & UNIT_FLAG2_FORCE_MOVEMENT)
-                    ss_flags << "ForceMovement ";
-                if (unitFlag2 & UNIT_FLAG2_DISARM_OFFHAND)
-                    ss_flags << "DisarmOffhand ";
-                if (unitFlag2 & UNIT_FLAG2_DISABLE_PRED_STATS)
-                    ss_flags << "DisablePredStats ";
-                if (unitFlag2 & UNIT_FLAG2_ALLOW_CHANGING_TALENTS)
-                    ss_flags << "AllowChangingTalents ";
-                if (unitFlag2 & UNIT_FLAG2_DISARM_RANGED)
-                    ss_flags << "DisarmRanged ";
-                if (unitFlag2 & UNIT_FLAG2_REGENERATE_POWER)
-                    ss_flags << "RegeneratePower ";
-                if (unitFlag2 & UNIT_FLAG2_RESTRICT_PARTY_INTERACTION)
-                    ss_flags << "RestrictPartyInteraction ";
-                if (unitFlag2 & UNIT_FLAG2_PREVENT_SPELL_CLICK)
-                    ss_flags << "PreventSpellClick ";
-                if (unitFlag2 & UNIT_FLAG2_ALLOW_ENEMY_INTERACT)
-                    ss_flags << "AllowEnemyInteract ";
-                if (unitFlag2 & UNIT_FLAG2_DISABLE_TURN)
-                    ss_flags << "DisableTurn ";
-                if (unitFlag2 & UNIT_FLAG2_UNK2)
-                    ss_flags << "UNK2 ";
-                if (unitFlag2 & UNIT_FLAG2_PLAY_DEATH_ANIM)
-                    ss_flags << "OkayDeathAnim ";
-                if (unitFlag2 & UNIT_FLAG2_ALLOW_CHEAT_SPELLS)
-                    ss_flags << "AllowCheatSpells ";
-                if (unitFlag2 & UNIT_FLAG2_UNK3)
-                    ss_flags << "UNK3 ";
-                if (unitFlag2 & UNIT_FLAG2_UNK4)
-                    ss_flags << "UNK4 ";
-                if (unitFlag2 & UNIT_FLAG2_UNK5)
-                    ss_flags << "UNK5 ";
-                if (unitFlag2 & UNIT_FLAG2_UNK6)
-                    ss_flags << "UNK6 ";
-                if (unitFlag2 & UNIT_FLAG2_NO_ACTIONS)
-                    ss_flags << "NoActions ";
-                if (unitFlag2 & UNIT_FLAG2_SWIM_PREVENT)
-                    ss_flags << "SwimPrevent ";
-                if (unitFlag2 & UNIT_FLAG2_HIDE_IN_COMBAT_LOG)
-                    ss_flags << "HideInCombatLog ";
-                if (unitFlag2 & UNIT_FLAG2_PREVENT_SELECT_NPC)
-                    ss_flags << "PreventSelectNpc ";
-                if (unitFlag2 & UNOT_FLAG2_IGNORE_SPELL_MIN_RANGE_RESTRICTIONS)
-                    ss_flags << "IgnoreSpellMinRangeRestrictions ";
-                if (unitFlag2 & UNIT_FLAG2_UNK7)
-                    ss_flags << "UNK7 ";
-            }
-            else
-                ss_flags << "0";
-
-            handler->PSendSysMessage("UnitFlags2: %s", ss_flags.str().c_str());
-        }
-
-        {
-            std::ostringstream ss_flags;
-
-            if (uint32 unitFlag3 = target->GetUInt32Value(UNIT_FIELD_FLAGS_3))
-            {
-                ss_flags << unitFlag3 << " : ";
-                // fix this
-                if (unitFlag3 & UNIT_FLAG3_UNK0)
-                    ss_flags << "UNK0 ";
-                if (unitFlag3 & UNIT_FLAG3_UNK1)
-                    ss_flags << "UNK1 ";
-                if (unitFlag3 & UNIT_FLAG3_NOT_CHECK_MOUNT)
-                    ss_flags << "NotCheckMount ";
-                if (unitFlag3 & UNIT_FLAG3_UNK3)
-                    ss_flags << "UNK3 ";
-                if (unitFlag3 & UNIT_FLAG3_UNK4)
-                    ss_flags << "UNK4 ";
-                if (unitFlag3 & UNIT_FLAG3_UNK5)
-                    ss_flags << "UNK5 ";
-                if (unitFlag3 & UNIT_FLAG3_UNK6)
-                    ss_flags << "UNK6 ";
-                if (unitFlag3 & UNIT_FLAG3_UNK7)
-                    ss_flags << "UNK7 ";
-                if (unitFlag3 & UNIT_FLAG3_UNK8)
-                    ss_flags << "UNK8 ";
-                if (unitFlag3 & UNIT_FLAG3_UNK9)
-                    ss_flags << "UNK9 ";
-                if (unitFlag3 & UNIT_FLAG3_UNK10)
-                    ss_flags << "UNK10 ";
-                if (unitFlag3 & UNIT_FLAG3_UNK11)
-                    ss_flags << "UNK11 ";
-                if (unitFlag3 & UNIT_FLAG3_UNK12)
-                    ss_flags << "UNK12 ";
-                if (unitFlag3 & UNIT_FLAG3_FEIGN_DEATH)
-                    ss_flags << "FeignDeath ";
-                
-            }
-            else
-                ss_flags << "0";
-
-            handler->PSendSysMessage("UnitFlags3: %s", ss_flags.str().c_str());
-        }
-
-        {
-            std::ostringstream ss_flags;
-
             if (uint32 dynamicFlags = target->GetUInt32Value(OBJECT_FIELD_DYNAMIC_FLAGS))
             {
                 ss_flags << dynamicFlags << " : ";
@@ -1227,7 +1118,7 @@ public:
             }
         }
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_POSITION);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_POSITION);
 
         stmt->setFloat(0, x);
         stmt->setFloat(1, y);
@@ -1324,7 +1215,7 @@ public:
 
         if (dontdel_str)
         {
-            //TC_LOG_ERROR(LOG_FILTER_GENERAL, "DEBUG: All 3 params are set");
+            //TC_LOG_ERROR("misc", "DEBUG: All 3 params are set");
 
             // All 3 params are set
             // GUID
@@ -1332,7 +1223,7 @@ public:
             // doNotDEL
             if (stricmp(dontdel_str, "NODEL") == 0)
             {
-                //TC_LOG_ERROR(LOG_FILTER_GENERAL, "DEBUG: doNotDelete = true;");
+                //TC_LOG_ERROR("misc", "DEBUG: doNotDelete = true;");
                 doNotDelete = true;
             }
         }
@@ -1341,10 +1232,10 @@ public:
             // Only 2 params - but maybe NODEL is set
             if (type_str)
             {
-                TC_LOG_ERROR(LOG_FILTER_GENERAL, "DEBUG: Only 2 params ");
+                TC_LOG_ERROR("misc", "DEBUG: Only 2 params ");
                 if (stricmp(type_str, "NODEL") == 0)
                 {
-                    //TC_LOG_ERROR(LOG_FILTER_GENERAL, "DEBUG: type_str, NODEL ");
+                    //TC_LOG_ERROR("misc", "DEBUG: type_str, NODEL ");
                     doNotDelete = true;
                     type_str = NULL;
                 }
@@ -1497,7 +1388,7 @@ public:
             creature->Respawn();
         }
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_SPAWN_DISTANCE);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_SPAWN_DISTANCE);
 
         stmt->setFloat(0, option);
         stmt->setUInt8(1, uint8(mtype));
@@ -1537,7 +1428,7 @@ public:
         else
             return false;
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_SPAWN_TIME_SECS);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_SPAWN_TIME_SECS);
 
         stmt->setUInt32(0, uint32(spawnTime));
         stmt->setUInt64(1, guidLow);
@@ -1808,7 +1699,7 @@ public:
         sFormationMgr->CreatureGroupMap[lowguid] = group_member;
         creature->SearchFormation();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_FORMATION);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_FORMATION);
 
         stmt->setUInt64(0, leaderGUID);
         stmt->setUInt64(1, lowguid);
@@ -2065,7 +1956,7 @@ public:
 
         Player* player = handler->GetSession()->GetPlayer();
 
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_CREATURE_NEAREST);
+        WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_CREATURE_NEAREST);
         stmt->setFloat(0, player->GetPositionX());
         stmt->setFloat(1, player->GetPositionY());
         stmt->setFloat(2, player->GetPositionZ());
