@@ -1877,14 +1877,7 @@ void Player::Update(uint32 p_time)
     UpdateHomebindTime(p_time);
 
     // group update
-    // Avoid spam of SMSG_PARTY_MEMBER_STAT
-    if (m_groupUpdateDelay < p_time)
-    {
-        SendUpdateToOutOfRangeGroupMembers();
-        m_groupUpdateDelay = 5000;
-    }
-    else
-        m_groupUpdateDelay -= p_time;
+    SendUpdateToOutOfRangeGroupMembers();
 
     if (GetSession()->IsWardenModuleFailed())
     {
