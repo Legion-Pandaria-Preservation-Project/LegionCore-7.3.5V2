@@ -73,7 +73,7 @@ namespace cds { namespace threading {
             //@cond
             /// TLS key holder
             struct Holder {
-                static DWORD m_key;
+                static /*CDS_EXPORT_API*/ DWORD m_key;
 
                 static void init()
                 {

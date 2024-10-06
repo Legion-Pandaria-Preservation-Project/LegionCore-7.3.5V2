@@ -21,15 +21,17 @@
 /// \file
 
 #include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/io_service.hpp>
+
+#include <boost/asio/signal_set.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/program_options.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <boost/asio/io_service.hpp>
 #include <cds/gc/hp.h>
 #include <cds/init.h>
 #include <google/protobuf/stubs/common.h>
 #include <openssl/crypto.h>
 #include <openssl/opensslv.h>
-
 
 #include "AsyncAcceptor.h"
 #include "BattlegroundMgr.h"
@@ -357,10 +359,8 @@ extern int main(int argc, char **argv)
                 DWORD numCharsWritten = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
                     nullptr, errorCode, 0, (LPTSTR)&errorBuffer, 0, nullptr);
                 if (!numCharsWritten)
-                    errorBuffer = "Unknown error";
-												  
-											 
-
+                    errorBuffer = (char*)"Unknown error";				  
+										
                 TC_LOG_DEBUG(LOG_FILTER_WORLDSERVER, "Error cancelling I/O of CliThread, error code %u, detail: %s", uint32(errorCode), errorBuffer);
 											 
 												  

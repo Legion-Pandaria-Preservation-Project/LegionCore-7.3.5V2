@@ -20,14 +20,15 @@
 #include "Util.h"
 #include "Common.h"
 #include "CompilerDefs.h"
+#include "IpAddress.h"
 #include "utf8.h"
 #include "Errors.h" // for ASSERT
 #include <cstdarg>
 #include "StringFormat.h"
-#include <boost/asio/ip/address.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <thread>
 
-#if COMPILER == COMPILER_GNU
+#if TRINITY_COMPILER == TRINITY_COMPILER_GNU
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>

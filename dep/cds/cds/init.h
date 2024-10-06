@@ -39,9 +39,10 @@
 namespace cds {
 
     //@cond
-    namespace details {
-        bool init_first_call();
-        bool fini_last_call();
+    bool /*CDS_EXPORT_API*/ init_first_call();
+        bool /*CDS_EXPORT_API*/ fini_last_call();
+
+        void /*CDS_EXPORT_API*/ check_hpstat_enabled( bool enabled );
     }   // namespace details
     //@endcond
 
