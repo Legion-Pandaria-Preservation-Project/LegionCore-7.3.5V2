@@ -37,7 +37,10 @@ namespace CharacterDatabaseCleaner
     bool AchievementProgressCheck(uint32 criteria);
     bool SkillCheck(uint32 skill);
     bool SpellCheck(uint32 spell_id);
-
+    
+    void CleanAllAchievementProgress();
+    void CleanGuildAchievementProgress();
+    void CleanAccountAchievementProgress();
     void CleanCharacterAchievementProgress();
     void CleanCharacterSkills();
     void CleanCharacterSpell();
