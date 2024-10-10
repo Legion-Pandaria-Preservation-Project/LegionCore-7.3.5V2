@@ -1837,10 +1837,10 @@ void Group::UpdatePlayerOutOfRange(Player* player)
     packet.Initialize(player);
 
     auto p = packet.Write();
-    for (auto itr = GetFirstMember(); itr != nullptr; itr = itr->next())
+    for (GroupReference* itr = GetFirstMember(); itr != nullptr; itr = itr->next())
     {
-        auto member = itr->getSource();
-        if (member && member != player && (!member->IsInMap(player) || !member->IsWithinDist(player, member->GetSightRange(), false)))
+        Player* member = itr->getSource();
+        if (member && member != player && (!member->IsInMap(player) || !member->IsWithinDist(player, member->GetSightRange(player), false)))
             member->SendDirectMessage(p);
     }
 }

@@ -73,7 +73,7 @@ std::vector<ChatCommand> const& ChatHandler::getCommandTable()
 
 std::string ChatHandler::PGetParseString(int32 entry, ...) const
 {
-    const char *format = GetTrinityString(entry);
+    const char* format = GetTrinityString(entry);
     char str[1024];
     va_list ap;
     va_start(ap, entry);
@@ -82,7 +82,7 @@ std::string ChatHandler::PGetParseString(int32 entry, ...) const
     return std::string(str);
 }
 
-const char *ChatHandler::GetTrinityString(int32 entry) const
+const char* ChatHandler::GetTrinityString(int32 entry) const
 {
     return m_session->GetTrinityString(entry);
 }
@@ -199,7 +199,7 @@ void ChatHandler::SendGlobalSysMessage(char const* str)
     free(buf);
 }
 
-void ChatHandler::SendGlobalGMSysMessage(const char *str)
+void ChatHandler::SendGlobalGMSysMessage(const char* str)
 {
     WorldPackets::Chat::Chat packet;
     char* buf = strdup(str);
@@ -273,56 +273,23 @@ bool ChatHandler::ExecuteCommandInTable(std::vector<ChatCommand> const& table, c
         // must be available and have handler
         if (!table[i].Handler || !isAvailable(table[i]))
             continue;
-		
-		
+
         SetSentErrorMessage(false);
         // table[i].Name == "" is special case: send original command to handler
         if ((table[i].Handler)(this, table[i].Name[0] != '\0' ? text : oldtext))
         {
-			if (!m_session) // ignore console
-				return true;
-
-			Player* player = m_session->GetPlayer();
-
             if (!AccountMgr::IsPlayerAccount(table[i].SecurityLevel))
             {
-				ObjectGuid sel_guid = player->GetSelection();
+                // chat case
+                if (m_session)
+                {
+                    Player* p = m_session->GetPlayer();
+                    ObjectGuid sel_guid = p->GetSelection();
 
-				uint32 areaId = player->GetAreaId();
-				std::string areaName = "Unknown";
-				std::string zoneName = "Unknown";
-				if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId))
-				{
-					int32 locale = GetSessionDbcLocale();
-					areaName = area->AreaName->Str[locale];
-					if (AreaTableEntry const* zone = sAreaTableStore.LookupEntry(area->ParentAreaID))
-						zoneName = zone->AreaName->Str[locale];
-				}
-
-				Unit* target = player->GetSelectedUnit();
-				Player* playerTarget = target ? target->ToPlayer() : nullptr;
-
-				uint8 index = 0;
-		
-				PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_LOG_GM_COMMAND);
-				stmt->setUInt32(index++, player->GetSession()->GetAccountId());
-				stmt->setString(index++, player->GetSession()->GetAccountName());
-				stmt->setUInt32(index++, player->GetGUID().GetCounter());
-				stmt->setString(index++, player->GetName());
-				stmt->setString(index++, player->GetSession()->GetRemoteAddress());
-				stmt->setUInt32(index++, !playerTarget ? 0 : playerTarget->GetSession()->GetAccountId());
-				stmt->setString(index++, !playerTarget ? "" : playerTarget->GetSession()->GetAccountName());
-				stmt->setUInt32(index++, !playerTarget ? 0 : playerTarget->GetGUID().GetCounter());
-				stmt->setString(index++, !playerTarget ? "" : playerTarget->GetName());
-				stmt->setString(index++, !playerTarget ? "" : playerTarget->GetSession()->GetRemoteAddress());
-				stmt->setString(index++, Trinity::StringFormat("Command: %s [X: %f Y: %f Z: %f Map: %u (%s) Area: %u (%s) Zone: %s Selected: %s (%s)]",
-					fullcmd.c_str(),
-					player->GetPositionX(), player->GetPositionY(), player->GetPositionZ(), player->GetMapId(),
-					player->FindMap() ? player->FindMap()->GetMapName() : "Unknown",
-					areaId, areaName.c_str(), zoneName.c_str(),
-					target ? target->GetName() : "",
-					sel_guid.ToString().c_str()));
-				CharacterDatabase.Execute(stmt);
+                    /*sLog->outCommand(m_session->GetAccountId(), "Command: %s [Player: %s (Account: %u) X: %f Y: %f Z: %f Map: %u Selected: %s (GUID: %u)]",
+                        fullcmd.c_str(), p->GetName(), m_session->GetAccountId(), p->GetPositionX(), p->GetPositionY(), p->GetPositionZ(), p->GetMapId(),
+                        sel_guid.GetTypeName(), (p->GetSelectedUnit()) ? p->GetSelectedUnit()->GetName() : "", sel_guid.GetCounter());*/
+                }
             }
         }
         // some commands have custom error messages. Don't send the default one in these cases.
@@ -435,7 +402,7 @@ int ChatHandler::ParseCommands(const char* text)
     return 1;
 }
 
-bool ChatHandler::PlayerExtraCommand(const char * text)
+bool ChatHandler::PlayerExtraCommand(const char* text)
 {
     ASSERT(text);
     ASSERT(*text);
@@ -540,26 +507,26 @@ bool ChatHandler::PlayerExtraCommand(const char * text)
 
                     switch (quality)
                     {
-                        case 6: // art
-                        {
-                            nameColor = "|cffe6d386|Hspell:";
-                            break;
-                        }
-                        case 5: // legend
-                        {
-                            nameColor = "|cffff7f00|Hspell:";
-                            break;
-                        }
-                        case 4: // epic
-                        {
-                            nameColor = "|cffa335ee|Hspell:";
-                            break;
-                        }
-                        case 3: // rare
-                        {
-                            nameColor = "|cff0070e0|Hspell:";
-                            break;
-                        }
+                    case 6: // art
+                    {
+                        nameColor = "|cffe6d386|Hspell:";
+                        break;
+                    }
+                    case 5: // legend
+                    {
+                        nameColor = "|cffff7f00|Hspell:";
+                        break;
+                    }
+                    case 4: // epic
+                    {
+                        nameColor = "|cffa335ee|Hspell:";
+                        break;
+                    }
+                    case 3: // rare
+                    {
+                        nameColor = "|cff0070e0|Hspell:";
+                        break;
+                    }
                     }
 
                     char const* name = aura->GetSpellInfo()->SpellName;
@@ -675,7 +642,7 @@ bool ChatHandler::PlayerExtraCommand(const char * text)
                     plr->SetPlayerExtraFlag(PLAYER_EXTRA_INVISIBLE_STATUS);
                     plr->SendInvisibleStatusMsg(1);
                 }
-                
+
                 plr->ResetCommandCooldown();
                 return true;
             }
@@ -866,6 +833,14 @@ bool ChatHandler::ShowHelpForCommand(std::vector<ChatCommand> const& table, cons
     return ShowHelpForSubCommands(table, "", cmd);
 }
 
+Player* ChatHandler::getPlayer()
+{
+    if (!m_session)
+        return nullptr;
+
+    return m_session->GetPlayer();
+}
+
 Player* ChatHandler::getSelectedPlayer()
 {
     if (!m_session)
@@ -877,6 +852,21 @@ Player* ChatHandler::getSelectedPlayer()
         return m_session->GetPlayer();
 
     return ObjectAccessor::FindPlayer(guid);
+}
+
+Player* ChatHandler::getSelectedPlayerOrSelf()
+{
+    if (!m_session)
+        return nullptr;
+
+    ObjectGuid selected = m_session->GetPlayer()->GetSelection();
+
+    Player* targetPlayer = ObjectAccessor::FindPlayer(selected);
+
+    if (!targetPlayer)
+        targetPlayer = m_session->GetPlayer();
+
+    return targetPlayer;
 }
 
 Unit* ChatHandler::getSelectedUnit()
@@ -1066,11 +1056,11 @@ GameObject* ChatHandler::GetObjectGlobalyWithGuidOrNearWithDbGuid(ObjectGuid::Lo
 
 enum SpellLinkType
 {
-    SPELL_LINK_SPELL   = 0,
-    SPELL_LINK_TALENT  = 1,
+    SPELL_LINK_SPELL = 0,
+    SPELL_LINK_TALENT = 1,
     SPELL_LINK_ENCHANT = 2,
-    SPELL_LINK_TRADE   = 3,
-    SPELL_LINK_GLYPH   = 4
+    SPELL_LINK_TRADE = 3,
+    SPELL_LINK_GLYPH = 4
 };
 
 static char const* const spellKeys[] =
@@ -1099,19 +1089,19 @@ uint32 ChatHandler::extractSpellIdFromLink(char* text)
     auto id = static_cast<uint32>(atol(idS));
     switch (type)
     {
-        case SPELL_LINK_SPELL:
-            return id;
-        case SPELL_LINK_TALENT:
-            if (TalentEntry const* talentEntry = sTalentStore.LookupEntry(id))
-                return talentEntry->SpellID;
-        case SPELL_LINK_ENCHANT:
-        case SPELL_LINK_TRADE:
-            return id;
-        case SPELL_LINK_GLYPH:
-            if (GlyphPropertiesEntry const* glyphPropEntry = sGlyphPropertiesStore.LookupEntry(param1_str ? atoul(param1_str) : 0))
-                return glyphPropEntry->SpellID;
-        default:
-            return 0;
+    case SPELL_LINK_SPELL:
+        return id;
+    case SPELL_LINK_TALENT:
+        if (TalentEntry const* talentEntry = sTalentStore.LookupEntry(id))
+            return talentEntry->SpellID;
+    case SPELL_LINK_ENCHANT:
+    case SPELL_LINK_TRADE:
+        return id;
+    case SPELL_LINK_GLYPH:
+        if (GlyphPropertiesEntry const* glyphPropEntry = sGlyphPropertiesStore.LookupEntry(param1_str ? atoul(param1_str) : 0))
+            return glyphPropEntry->SpellID;
+    default:
+        return 0;
     }
 }
 
@@ -1132,8 +1122,8 @@ GameTele const* ChatHandler::extractGameTeleFromLink(char* text)
 
 enum GuidLinkType
 {
-    SPELL_LINK_PLAYER     = 0,                              // must be first for selection in not link case
-    SPELL_LINK_CREATURE   = 1,
+    SPELL_LINK_PLAYER = 0,                              // must be first for selection in not link case
+    SPELL_LINK_CREATURE = 1,
     SPELL_LINK_GAMEOBJECT = 2
 };
 
@@ -1158,37 +1148,37 @@ ObjectGuid ChatHandler::extractGuidFromLink(char* text)
 
     switch (type)
     {
-        case SPELL_LINK_PLAYER:
-        {
-            std::string name = idS;
-            if (!normalizePlayerName(name))
-                return ObjectGuid::Empty;
-
-            if (Player* player = sObjectAccessor->FindPlayerByName(name))
-                return player->GetGUID();
-
-            return ObjectMgr::GetPlayerGUIDByName(name);
-        }
-        case SPELL_LINK_CREATURE:
-        {
-            ObjectGuid::LowType lowguid = strtoull(idS, nullptr, 10);
-
-            if (CreatureData const* data = sObjectMgr->GetCreatureData(lowguid))
-                return ObjectGuid::Create<HighGuid::Creature>(data->mapid, data->id, lowguid);
-
+    case SPELL_LINK_PLAYER:
+    {
+        std::string name = idS;
+        if (!normalizePlayerName(name))
             return ObjectGuid::Empty;
-        }
-        case SPELL_LINK_GAMEOBJECT:
-        {
-            ObjectGuid::LowType lowguid = strtoull(idS, nullptr, 10);
 
-            if (GameObjectData const* data = sObjectMgr->GetGOData(lowguid))
-                return ObjectGuid::Create<HighGuid::GameObject>(data->mapid, data->id, lowguid);
+        if (Player* player = sObjectAccessor->FindPlayerByName(name))
+            return player->GetGUID();
 
-            return ObjectGuid::Empty;
-        }
-        default:
-            break;
+        return ObjectMgr::GetPlayerGUIDByName(name);
+    }
+    case SPELL_LINK_CREATURE:
+    {
+        ObjectGuid::LowType lowguid = strtoull(idS, nullptr, 10);
+
+        if (CreatureData const* data = sObjectMgr->GetCreatureData(lowguid))
+            return ObjectGuid::Create<HighGuid::Creature>(data->mapid, data->id, lowguid);
+
+        return ObjectGuid::Empty;
+    }
+    case SPELL_LINK_GAMEOBJECT:
+    {
+        ObjectGuid::LowType lowguid = strtoull(idS, nullptr, 10);
+
+        if (GameObjectData const* data = sObjectMgr->GetGOData(lowguid))
+            return ObjectGuid::Create<HighGuid::GameObject>(data->mapid, data->id, lowguid);
+
+        return ObjectGuid::Empty;
+    }
+    default:
+        break;
     }
 
     // unknown type?
@@ -1313,7 +1303,7 @@ CliHandler::CliHandler(void* callbackArg, Print* zprint) : m_callbackArg(callbac
 {
 }
 
-const char *CliHandler::GetTrinityString(int32 entry) const
+const char* CliHandler::GetTrinityString(int32 entry) const
 {
     return sObjectMgr->GetTrinityStringForDBCLocale(entry);
 }
@@ -1324,7 +1314,7 @@ bool CliHandler::isAvailable(ChatCommand const& cmd) const
     return cmd.AllowConsole;
 }
 
-void CliHandler::SendSysMessage(const char *str)
+void CliHandler::SendSysMessage(const char* str)
 {
     m_print(m_callbackArg, str);
     m_print(m_callbackArg, "\r\n");
@@ -1340,7 +1330,7 @@ bool CliHandler::needReportToTarget(Player* /*chr*/) const
     return true;
 }
 
-bool ChatHandler::GetPlayerGroupAndGUIDByName(const char* cname, Player* &player, Group* &group, ObjectGuid &guid, bool offline)
+bool ChatHandler::GetPlayerGroupAndGUIDByName(const char* cname, Player*& player, Group*& group, ObjectGuid& guid, bool offline)
 {
     player = nullptr;
     guid = ObjectGuid::Empty;
@@ -1394,9 +1384,9 @@ int CliHandler::GetSessionDbLocaleIndex() const
     return sObjectMgr->GetDBCLocaleIndex();
 }
 
-CommandArgs::CommandArgs(ChatHandler* handler, char const* args): _validArgs(false), _handler(handler), _charArgs(args) { }
+CommandArgs::CommandArgs(ChatHandler* handler, char const* args) : _validArgs(false), _handler(handler), _charArgs(args) { }
 
-CommandArgs::CommandArgs(ChatHandler* handler, char const* args, std::initializer_list<CommandArgsType> argsType): _validArgs(false), _handler(handler), _charArgs(args)
+CommandArgs::CommandArgs(ChatHandler* handler, char const* args, std::initializer_list<CommandArgsType> argsType) : _validArgs(false), _handler(handler), _charArgs(args)
 {
     Initialize(argsType);
 }

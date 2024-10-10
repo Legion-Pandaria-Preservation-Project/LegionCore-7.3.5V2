@@ -50,6 +50,8 @@ void AddSC_npc_PetBattleTrainer();
 void AddSC_darkmoon();
 void AddSC_event_tarecgosa();
 void Addsc_dalaran_invasion();
+void AddSC_solocraft();
+
 
 // spells
 void AddSC_demonhunter_spell_scripts();
@@ -1935,6 +1937,7 @@ void AddCustomScripts()
     AddSC_darkmoon();
     AddSC_event_tarecgosa();
     Addsc_dalaran_invasion();
+    AddSC_solocraft();
 #endif
 }
 

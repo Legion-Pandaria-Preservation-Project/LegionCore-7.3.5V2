@@ -15,6 +15,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+ /* ScriptData
+ Name: quest_commandscript
+ %Complete: 100
+ Comment: All quest related commands
+ Category: commandscripts
+ EndScriptData */
+
 #include "ScriptMgr.h"
 #include "ObjectMgr.h"
 #include "Chat.h"
@@ -108,9 +115,9 @@ public:
         // check item starting quest (it can work incorrectly if added without item in inventory)
         ItemTemplateContainer const* itc = sObjectMgr->GetItemTemplateStore();
         ItemTemplateContainer::const_iterator result = std::find_if(itc->begin(), itc->end(), [entry](ItemTemplateContainer::value_type const& value)
-        {
-            return value.second.GetStartQuestID() == entry;
-        });
+            {
+                return value.second.GetStartQuestID() == entry;
+            });
 
         if (result != itc->end())
         {
@@ -158,8 +165,6 @@ public:
             return false;
         }
 
-        QuestStatus oldStatus = player->GetQuestStatus(entry);
-
         // remove all quest entries for 'entry' from quest log
         for (uint8 slot = 0; slot < MAX_QUEST_LOG_SIZE; ++slot)
         {
@@ -176,8 +181,6 @@ public:
         player->RemoveActiveQuest(entry);
         player->RemoveRewardedQuest(entry);
 
-        sScriptMgr->OnQuestStatusChange(player, quest, oldStatus, QUEST_STATUS_NONE);
-
         handler->SendSysMessage(LANG_COMMAND_QUEST_REMOVED);
         return true;
     }
@@ -185,6 +188,11 @@ public:
     static bool HandleQuestComplete(ChatHandler* handler, const char* args)
     {
         Player* player = handler->getSelectedPlayer();
+        if (!player)
+        {
+            player = handler->getPlayer();
+        }
+
         if (!player)
         {
             handler->SendSysMessage(LANG_NO_CHAR_SELECTED);
