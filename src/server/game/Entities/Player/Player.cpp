@@ -36186,7 +36186,7 @@ bool Player::IsForbiddenMapForLevel(uint32 mapid, uint32 zone)
         }
         // Northrend
         case 571:
-            minLevel = 68;
+            minLevel = 58;
             break;
         // Deepholm
         case 646:
