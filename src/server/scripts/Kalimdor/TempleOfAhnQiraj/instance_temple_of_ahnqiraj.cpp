@@ -62,7 +62,7 @@ public:
         uint32 AllianceScore{};
         uint32 HordeScore{};
 
-        void Initialize()
+        void Initialize() override
         {
             IsBossDied[0] = false;
             IsBossDied[1] = false;
@@ -98,7 +98,7 @@ public:
             }
         }
 
-        bool IsEncounterInProgress() const
+        bool IsEncounterInProgress() const override
         {
             //not active in AQ40
             return false;
@@ -169,7 +169,7 @@ public:
             return 0;
         }
 
-        ObjectGuid GetGuidData(uint32 identifier) const
+        ObjectGuid GetGuidData(uint32 identifier) const override
         {
             switch (identifier)
             {
