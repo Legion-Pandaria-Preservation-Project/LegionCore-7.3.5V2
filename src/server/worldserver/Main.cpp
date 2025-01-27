@@ -170,7 +170,7 @@ extern int main(int argc, char **argv)
     uint32 pid = 0;
     if (!pidFile.empty())
     {
-        if (pid = CreatePIDFile(pidFile))
+        if ((pid = CreatePIDFile(pidFile)))
             TC_LOG_INFO(LOG_FILTER_WORLDSERVER, "Daemon PID: %u\n", pid);
         else
         {
