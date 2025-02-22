@@ -19728,7 +19728,7 @@ bool Player::SatisfyQuestSkill(Quest const* qInfo, bool msg) const
     if (const_cast<Player*>(this)->GetSkillValue(skill) < qInfo->RequiredSkillPoints)
     {
         if (msg)
-            SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "skill");
+            SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "skill level too low");
 
         return false;
     }
@@ -19747,7 +19747,7 @@ bool Player::SatisfyQuestLevel(Quest const* qInfo, bool msg)
     if (qInfo->MaxLevel > 0 && getLevel() > qInfo->MaxLevel)
     {
         if (msg)
-            SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "level"); // There doesn't seem to be a specific response for too high player level
+            SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "level too high"); // There doesn't seem to be a specific response for too high player level
         return false;
     }
     return true;
@@ -19808,7 +19808,7 @@ bool Player::SatisfyQuestPreviousQuest(Quest const* qInfo, bool msg)
                 if (m_RewardedQuests.find(exclude_Id) == m_RewardedQuests.end())
                 {
                     if (msg)
-                        SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "rewarded");
+                        SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "rewarded quest condition");
                     return false;
                 }
             }
@@ -19852,7 +19852,7 @@ bool Player::SatisfyQuestPreviousQuest(Quest const* qInfo, bool msg)
     // Has only positive prev. quests in non-rewarded state
     // and negative prev. quests in non-active state
     if (msg)
-        SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "prev");
+        SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "previous quest condition");
 
     return false;
 }
@@ -19869,7 +19869,7 @@ bool Player::SatisfyQuestClass(Quest const* qInfo, bool msg) const
         if ((reqClass & getClassMask()) == 0)
         {
             if (msg)
-                SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "class");
+                SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "invalid class (required)");
 
             return false;
         }
@@ -19882,7 +19882,7 @@ bool Player::SatisfyQuestClass(Quest const* qInfo, bool msg) const
         if (reqClass & getClassMask())
         {
             if (msg)
-                SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "class");
+                SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "invalid class (excluded)");
 
             return false;
         }
@@ -19913,7 +19913,7 @@ bool Player::SatisfyQuestReputation(Quest const* qInfo, bool msg)
     if (fIdMin && GetReputationMgr().GetReputation(fIdMin) < qInfo->RequiredMinRepValue)
     {
         if (msg)
-            SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "rep");
+            SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "required reputation too low");
         return false;
     }
 
@@ -19921,7 +19921,7 @@ bool Player::SatisfyQuestReputation(Quest const* qInfo, bool msg)
     if (fIdMax && GetReputationMgr().GetReputation(fIdMax) >= qInfo->RequiredMaxRepValue)
     {
         if (msg)
-            SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "rep");
+            SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "required reputation too high");
         return false;
     }
 
@@ -20030,7 +20030,7 @@ bool Player::SatisfyQuestNextChain(Quest const* qInfo, bool msg)
     if (GetQuestStatus(qInfo->NextQuestIdChain) != QUEST_STATUS_NONE) // GetQuestStatus returns QUEST_STATUS_COMPLETED for rewarded quests
     {
         if (msg)
-            SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "chain");
+            SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "next chain quest started or completed");
         return false;
     }
 
@@ -20053,7 +20053,7 @@ bool Player::SatisfyQuestPrevChain(Quest const* qInfo, bool msg)
         if (q_status && q_status->Status != QUEST_STATUS_NONE)
         {
             if (msg)
-                SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "prev chain");
+                SendCanTakeQuestResponse(INVALIDREASON_DONT_HAVE_REQ, qInfo, "previous chain quest active");
             return false;
         }
 
