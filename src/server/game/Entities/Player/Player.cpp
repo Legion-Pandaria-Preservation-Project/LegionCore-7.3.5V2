@@ -3835,8 +3835,9 @@ void Player::GiveXP(uint32 xp, Unit* victim, float groupRate /*= 1.0f*/)
     if (IsForbiddenMapForLevel(GetMapId(), m_zoneId))
         xp = 0;
 
-    if (IsLoXpMap(GetMapId()))
-        xp = uint32(xp / (sWorld->getRate(RATE_XP_QUEST)));
+    // Commented this out since there isn't any reason to limit XP rate increase for specific starting areas??
+    //if (IsLoXpMap(GetMapId()))
+    //    xp = uint32(xp / (sWorld->getRate(RATE_XP_QUEST)));
 
     uint8 level = getLevel();
 
