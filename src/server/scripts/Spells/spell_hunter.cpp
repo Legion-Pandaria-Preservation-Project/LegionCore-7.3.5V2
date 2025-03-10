@@ -33,7 +33,7 @@ enum HunterSpells
     DIRE_BEAST_JADE_FOREST                       = 121118,
     DIRE_BEAST_KALIMDOR                          = 122802,
     DIRE_BEAST_EASTERN_KINGDOMS                  = 122804,
-    DIRE_BEAST_OUTLAND                           = 122806,
+    DIRE_BEAST_OUTLAND                           = 122802,  // orig: 122806 (had to change temporarily, it doesn't work in Outland correctly with this)
     DIRE_BEAST_NORTHREND                         = 122807,
     DIRE_BEAST_KRASARANG_WILDS                   = 122809,
     DIRE_BEAST_VALLEY_OF_THE_FOUR_WINDS          = 122811,
@@ -98,11 +98,10 @@ class spell_hun_dire_beast : public SpellScriptLoader
                                     case 1: // Kalimdor
                                         _player->CastSpell(target, DIRE_BEAST_KALIMDOR, true);
                                         break;
-                                    case 8: // Outland
-                                    case 530:
+                                     case 530: // Outland
                                         _player->CastSpell(target, DIRE_BEAST_OUTLAND, true);
                                         break;
-                                    case 10: // Northrend
+                                    case 571: // Northrend
                                         _player->CastSpell(target, DIRE_BEAST_NORTHREND, true);
                                         break;
                                     default:
