@@ -564,7 +564,6 @@ void WorldSession::HandleGetMailList(WorldPackets::Mail::MailGetList& packet)
     Trinity::VisitNearbyObject(player, 5.0f, searcher);
 
     WorldPackets::Mail::MailListResult response;
-    response.TotalNumRecords = player->GetMailSize();
 
     time_t cur_time = time(nullptr);
 
@@ -575,11 +574,11 @@ void WorldSession::HandleGetMailList(WorldPackets::Mail::MailGetList& packet)
         if ((*itr)->state == MAIL_STATE_DELETED || cur_time < (*itr)->deliver_time)
             continue;
 
-        response.Mails.emplace_back(*itr, player);
-
         // max. 50 mails can be sent
-        if (response.Mails.size() >= 50)
-            break;
+        if (response.Mails.size() < 50)
+            response.Mails.emplace_back(*itr, player);
+
+        ++response.TotalNumRecords;
     }
 
     SendPacket(response.Write());
