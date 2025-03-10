@@ -650,7 +650,7 @@ class spell_hun_tame_beast : public SpellScriptLoader
 
                 if (Creature* target = GetExplTargetUnit()->ToCreature())
                 {
-                    if (target->getLevel() > caster->getLevel())
+                    if (target->getLevelForTarget(caster) > caster->getLevel())
                         return SPELL_FAILED_HIGHLEVEL;
 
                     if (!target->GetCreatureTemplate()->isTameable(caster->ToPlayer()))
