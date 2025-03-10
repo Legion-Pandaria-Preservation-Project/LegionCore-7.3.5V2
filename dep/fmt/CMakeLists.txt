@@ -45,6 +45,10 @@ target_compile_definitions(fmt
     -DFMT_USE_RVALUE_REFERENCES
     -DFMT_USE_DELETED_FUNCTIONS
     -DFMT_USE_EXTERN_TEMPLATES)
+    
+target_link_libraries(fmt
+  PRIVATE
+    trinity-dependency-interface)    
 
 set_target_properties(fmt
   PROPERTIES

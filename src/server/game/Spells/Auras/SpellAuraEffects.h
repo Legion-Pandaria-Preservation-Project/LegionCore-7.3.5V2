@@ -365,6 +365,7 @@ class AuraEffect
         void HandleAuraProcOnHpBelow(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleExpedite(AuraApplication const* aurApp, uint8 mode, bool apply) const;
         void HandleModVisibilityRange(AuraApplication const* aurApp, uint8 mode, bool apply) const;
+        void HandleSwitchTeam(AuraApplication const* aurApp, uint8 mode, bool apply) const;
 };
 
 #endif

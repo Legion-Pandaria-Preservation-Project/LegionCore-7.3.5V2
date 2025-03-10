@@ -33,7 +33,7 @@ enum HunterSpells
     DIRE_BEAST_JADE_FOREST                       = 121118,
     DIRE_BEAST_KALIMDOR                          = 122802,
     DIRE_BEAST_EASTERN_KINGDOMS                  = 122804,
-    DIRE_BEAST_OUTLAND                           = 122806,
+    DIRE_BEAST_OUTLAND                           = 122802,  // orig: 122806 (had to change temporarily, it doesn't work in Outland correctly with this)
     DIRE_BEAST_NORTHREND                         = 122807,
     DIRE_BEAST_KRASARANG_WILDS                   = 122809,
     DIRE_BEAST_VALLEY_OF_THE_FOUR_WINDS          = 122811,
@@ -42,6 +42,127 @@ enum HunterSpells
     DIRE_BEAST_TOWNLONG_STEPPES                  = 126215,
     DIRE_BEAST_DREAD_WASTES                      = 126216,
     DIRE_BEAST_DUNGEONS                          = 132764,
+    
+    // The following need to be checked for zone specific Dire Beast casts:
+    // 138574
+    // 138580
+    // 139226
+    // 139227
+    // 149365
+    // 170357
+    // 170358
+    // 170359
+    // 170360
+    // 170361
+    // 170362
+    // 170363
+    // 170364
+    // 191184 (no description?)
+    // 204397
+    // 204409
+    // 204410
+    // 204411
+    // 204412
+    // 204413
+    // 204415
+    // 204416
+    // 204417
+    // 204418
+    // 204419
+    // 204420
+    // 204422
+    // 204423
+    // 204424
+    // 204425
+    // 204426
+    // 204427
+    // 204428
+    // 204429
+    // 204430
+    // 204431
+    // 204432
+    // 204433
+    // 204434
+    // 204480
+    // 204494
+    // 204507
+    // 204512
+    // 204514
+    // 204516
+    // 204518
+    // 204520
+    // 204521
+    // 204522
+    // 204523
+    // 204524
+    // 204525
+    // 204526
+    // 204527
+    // 204528
+    // 204530
+    // 204532
+    // 204533
+    // 204534
+    // 204546
+    // 204548
+    // 204550
+    // 204552
+    // 204554
+    // 204555
+    // 204556
+    // 204557
+    // 204558
+    // 204560
+    // 204561
+    // 204565
+    // 204568
+    // 204569
+    // 204571
+    // 204572
+    // 204583
+    // 204584
+    // 204585
+    // 204614
+    // 204619
+    // 204621
+    // 204622
+    // 204623
+    // 204627
+    // 204629
+    // 204630
+    // 204632
+    // 204633
+    // 204636
+    // 205691 (Dire Beast: Basilisk)
+    // 205694 (Dire Beast: Gorilla - Honor Talent)
+    // 208548 (Dire Beast: Gorilla)
+    // 208652 (Dire Beast: Hawk - Honor Talent)
+    // 208679 (Dire Beast: Hawk)
+    // 208684 (Dire Beast: Hawk)
+    // 208819 (Dire Beast: Hawk)
+    // 209967 (Dire Beast: Basilisk)
+    // 212381
+    // 212382
+    // 212386
+    // 212388
+    // 212389
+    // 212396
+    // 212397
+    // 212407 (Glyph of Arachnophobia)
+    // 212410 (Glyph of Nesingwary's Nemeses)
+    // 215778 (Your Dire Beast is granting you $s1 Focus every $t1 sec.)
+    // 219183 (Glyph of the Dire Stable)
+    // 219199
+    // 224573
+    // 224574
+    // 224575
+    // 224576
+    // 224577
+    // 224578
+    // 240698 (Dire Beast: Hawk)
+    // 247242 (Dire Beast: Frog)
+    // 255283
+    
     DIRE_FRENZY                                  = 217200
 };
 
@@ -98,11 +219,10 @@ class spell_hun_dire_beast : public SpellScriptLoader
                                     case 1: // Kalimdor
                                         _player->CastSpell(target, DIRE_BEAST_KALIMDOR, true);
                                         break;
-                                    case 8: // Outland
-                                    case 530:
+                                     case 530: // Outland
                                         _player->CastSpell(target, DIRE_BEAST_OUTLAND, true);
                                         break;
-                                    case 10: // Northrend
+                                    case 571: // Northrend
                                         _player->CastSpell(target, DIRE_BEAST_NORTHREND, true);
                                         break;
                                     default:
@@ -530,7 +650,7 @@ class spell_hun_tame_beast : public SpellScriptLoader
 
                 if (Creature* target = GetExplTargetUnit()->ToCreature())
                 {
-                    if (target->getLevel() > caster->getLevel())
+                    if (target->getLevelForTarget(caster) > caster->getLevel())
                         return SPELL_FAILED_HIGHLEVEL;
 
                     if (!target->GetCreatureTemplate()->isTameable(caster->ToPlayer()))

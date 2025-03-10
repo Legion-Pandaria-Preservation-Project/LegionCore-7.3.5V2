@@ -255,7 +255,7 @@ public:
             return false;
 
         // Can be NULL at console call
-        Player* target = handler->getSelectedPlayer();
+        Player* target = handler->getSelectedPlayerOrSelf();
 
         std::string namePart = args;
         std::wstring wNamePart;
@@ -537,6 +537,10 @@ public:
 
         // can be NULL at console call
         Player* target = handler->getSelectedPlayer();
+        if (!target)
+        {
+            target = handler->getPlayer();
+        }
 
         std::string namePart = args;
         std::wstring wNamePart;

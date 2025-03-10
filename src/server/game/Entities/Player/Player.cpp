@@ -47,6 +47,7 @@
 #include "CombatPackets.h"
 #include "Common.h"
 #include "ConditionMgr.h"
+#include "Config.h"
 #include "CreatureAI.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
@@ -278,7 +279,11 @@ m_achievementMgr(sf::safe_ptr<AchievementMgr<Player>>(this))
         m_bgBattlegroundQueueID[j].invitedToInstance = 0;
         m_bgBattlegroundQueueID[j].joinTime = 0;
     }
-
+        // PlayedTimeReward
+    ptr_Interval = sConfigMgr->GetIntDefault("PlayedTimeReward.Interval", 0);
+    ptr_Money = sConfigMgr->GetIntDefault("PlayedTimeReward.Money", 0);
+    ptr_Item = sConfigMgr->GetIntDefault("PlayedTimeReward.Item", 0);
+    
     m_createdtime = time(NULL);
     m_logintime = time(NULL);
     m_Last_tick = 0;
@@ -1524,6 +1529,20 @@ void Player::Update(uint32 p_time)
         if (Unit* charmer = GetCharmer())
             if (charmer->IsCreature() && charmer->isAlive())
                 UpdateCharmedAI();
+      
+      // PlayedTimeReward
+    if (ptr_Interval > 0)
+    {
+        if (ptr_Interval <= p_time)
+        {
+            ChatHandler(GetSession()).PSendSysMessage("[PlayedTimeReward] :: Вы получили вознаграждение за пребывание в сети.");
+            ModifyMoney(ptr_Money);
+            AddItem(ptr_Item, 1, 0);
+            ptr_Interval = sConfigMgr->GetIntDefault("PlayedTimeReward.Interval", 0);
+        }
+        else
+            ptr_Interval -= p_time;
+    }                   
 
     if (!m_timedquests.empty())
     {
@@ -1858,14 +1877,7 @@ void Player::Update(uint32 p_time)
     UpdateHomebindTime(p_time);
 
     // group update
-    // Avoid spam of SMSG_PARTY_MEMBER_STAT
-    if (m_groupUpdateDelay < p_time)
-    {
-        SendUpdateToOutOfRangeGroupMembers();
-        m_groupUpdateDelay = 5000;
-    }
-    else
-        m_groupUpdateDelay -= p_time;
+    SendUpdateToOutOfRangeGroupMembers();
 
     if (GetSession()->IsWardenModuleFailed())
     {
@@ -3823,8 +3835,9 @@ void Player::GiveXP(uint32 xp, Unit* victim, float groupRate /*= 1.0f*/)
     if (IsForbiddenMapForLevel(GetMapId(), m_zoneId))
         xp = 0;
 
-    if (IsLoXpMap(GetMapId()))
-        xp = uint32(xp / (sWorld->getRate(RATE_XP_QUEST)));
+    // Commented this out since there isn't any reason to limit XP rate increase for specific starting areas??
+    //if (IsLoXpMap(GetMapId()))
+    //    xp = uint32(xp / (sWorld->getRate(RATE_XP_QUEST)));
 
     uint8 level = getLevel();
 
@@ -4071,15 +4084,9 @@ void Player::GiveLevel(uint8 level)
 
 void Player::InitTalentForLevel()
 {
-    uint8 level = getLevel();
-    if (level < 10)
-        ResetTalentSpecialization();
-
     uint8 talentPointsForLevel = CalculateTalentsPoints();
 
-    if (level < 15)
-        ResetTalents(true);
-    else
+    if (talentPointsForLevel > 0)
     {
         for (uint8 t = talentPointsForLevel; t < MAX_TALENT_TIERS; ++t)
             for (uint8 c = 0; c < MAX_TALENT_COLUMNS; ++c)
@@ -8870,6 +8877,25 @@ uint32 Player::TeamForRace(uint8 race)
     return ALLIANCE;
 }
 
+void Player::SwitchToOppositeTeam(bool apply)
+{
+    m_team = GetNativeTeam();
+
+    if (apply)
+        m_team = (m_team == ALLIANCE) ? HORDE : ALLIANCE;
+}
+
+uint32 Player::GetBgQueueTeam() const
+{
+    if (HasAura(SPELL_MERCENARY_CONTRACT_HORDE))
+        return HORDE;
+
+    if (HasAura(SPELL_MERCENARY_CONTRACT_ALLIANCE))
+        return ALLIANCE;
+
+    return GetTeam();
+}
+
 void Player::setFactionForRace(uint8 race)
 {
     m_team = TeamForRace(race);
@@ -10113,7 +10139,6 @@ void Player::UpdateArea(uint32 newArea)
         if (m_areaId)
             AddPlayerToArea(m_areaId);
     }
-
     AddDelayedEvent(100, [this]() -> void
     {
         GetPhaseMgr().AddUpdateFlag(PHASE_UPDATE_FLAG_AREA_UPDATE);
@@ -10236,12 +10261,12 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
 
     // group update
     if (GetGroup())
-    {
+     {
         //SetGroupUpdateFlag(GROUP_UPDATE_FULL);
         SetGroupUpdateFlag(GROUP_UPDATE_FLAG_ZONE);
         if (Pet* pet = GetPet())
             pet->SetGroupUpdateFlag(GROUP_UPDATE_PET_FULL);
-    }
+     }
 
     if (newZone != (m_zoneId ? m_zoneId : m_oldZoneId))
         UpdateAreaQuestTasks(newZone, m_zoneId ? m_zoneId : m_oldZoneId);
@@ -30903,10 +30928,13 @@ float Player::GetReputationPriceDiscount(Creature const* creature) const
         return 1.0f;
 
     ReputationRank rank = GetReputationRank(vendor_faction->Faction);
+    // Check if player has 'Best Deals Anywhere' passive (should be goblin only)
+    if (const_cast<Player*>(this)->HasSpell(69044))
+        rank = REP_EXALTED;
     if (rank <= REP_NEUTRAL)
         return 1.0f;
 
-    return 1.0f - 0.05f* (rank - REP_NEUTRAL);
+    return 1.0f - 0.05f * (rank - REP_NEUTRAL);
 }
 
 Player* Player::GetTrader() const

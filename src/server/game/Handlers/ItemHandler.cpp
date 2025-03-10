@@ -1536,13 +1536,13 @@ void WorldSession::HandleRemoveNewItem(WorldPackets::Item::RemoveNewItem& remove
 
 void WorldSession::HandleSortBags(WorldPackets::Item::SortBags& /*sortBags*/)
 {
-    _player->ApplyOnBagsItems([](Player* player, Item* item, uint8 /*bag*/, uint8 /*slot*/)
-    {
-        StoreItemInBags(player, item);
-        return true;
-    });
-
-    SortBags(_player, &Player::ApplyOnBagsItems);
+    // _player->ApplyOnBagsItems([](Player* player, Item* item, uint8 /*bag*/, uint8 /*slot*/)
+    // {
+    //     StoreItemInBags(player, item);
+    //     return true;
+    // });
+    //
+    // SortBags(_player, &Player::ApplyOnBagsItems);
     SendPacket(WorldPackets::Item::SortBagsResult().Write());
 }
 
