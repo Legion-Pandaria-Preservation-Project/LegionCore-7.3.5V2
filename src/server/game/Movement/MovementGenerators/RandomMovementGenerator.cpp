@@ -40,6 +40,7 @@ void RandomMovementGenerator<Creature>::_setRandomLocation(Creature& creature)
 
     const float angle = float(rand_norm()) * static_cast<float>(M_PI*2.0f);
     const float range = float(rand_norm() * wander_distance);
+
     const float distanceX = range * cos(angle);
     const float distanceY = range * sin(angle);
 
@@ -84,13 +85,13 @@ void RandomMovementGenerator<Creature>::_setRandomLocation(Creature& creature)
                 destZ = map->GetHeight(creature.GetPhases(), destX, destY, respZ+travelDistZ-2.0f, true);
 
                 // let's forget this bad coords where a z cannot be find and retry at next tick
-               if (std::fabs(destZ - respZ) > travelDistZ)
+                if (std::fabs(destZ - respZ) > travelDistZ)
                     return;
             }
         }
     }
 
-    if (is_air_ok)
+     if (is_air_ok)
         i_nextMoveTime.Reset(0);
     else
     {
@@ -100,7 +101,7 @@ void RandomMovementGenerator<Creature>::_setRandomLocation(Creature& creature)
             i_nextMoveTime.Reset(urand(50, 400));
     }
 
-    creature.AddUnitState(UNIT_STATE_ROAMING | UNIT_STATE_ROAMING_MOVE);
+    creature.AddUnitState(UNIT_STATE_ROAMING_MOVE);
 
     Movement::MoveSplineInit init(creature);
     init.MoveTo(destX, destY, destZ);
@@ -141,9 +142,9 @@ void RandomMovementGenerator<Creature>::DoFinalize(Creature &creature)
 template<>
 bool RandomMovementGenerator<Creature>::DoUpdate(Creature &creature, const uint32 diff)
 {
-    if (!creature.isAlive())
+     if (!creature.isAlive())
         return false;
-        
+
     if (creature.HasUnitState(UNIT_STATE_ROOT | UNIT_STATE_STUNNED | UNIT_STATE_DISTRACTED))
     {
         i_nextMoveTime.Reset(0);  // Expire the timer
@@ -156,7 +157,6 @@ bool RandomMovementGenerator<Creature>::DoUpdate(Creature &creature, const uint3
         i_nextMoveTime.Update(diff);
         if (i_nextMoveTime.Passed())
             _setRandomLocation(creature);
-            
     }
     return true;
 }
